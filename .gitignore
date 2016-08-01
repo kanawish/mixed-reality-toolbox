@@ -38,3 +38,11 @@ captures/
 
 # Keystore files
 *.jks
+.idea
+
+# Semi-sensitive files
+google-services.json
+
+# Workdesk/Gulp generated files
+workdesk/node_modules
+workdesk/dist
