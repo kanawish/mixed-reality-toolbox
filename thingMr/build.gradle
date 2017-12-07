@@ -29,7 +29,7 @@ dependencies {
 
     compileOnly 'com.google.android.things:androidthings:+'
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:1.1.50"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:support-v4:26.1.0'
 
     implementation 'com.google.android.things.contrib:driver-mma7660fc:0.2'
@@ -39,6 +39,12 @@ dependencies {
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
     implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.0.6"
     implementation "com.github.stephanenicolas.toothpick:smoothie:1.0.6"
+
+    // RxJava 2 for your declarative programming needs
+    api "io.reactivex.rxjava2:rxjava:2.1.2" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
+    api "io.reactivex.rxjava2:rxandroid:2.0.1" // https://github.com/ReactiveX/RxAndroid/blob/2.x/CHANGES.md
+    api "io.reactivex.rxjava2:rxkotlin:2.1.0" // https://github.com/ReactiveX/RxKotlin/releases
+    api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
 
     testImplementation 'junit:junit:4.12'
 }

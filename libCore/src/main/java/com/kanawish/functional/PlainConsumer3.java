@@ -8,6 +8,7 @@ package com.kanawish.functional;
  * @param <T2> the second value type
  * @param <T3> the third value type
  */
+@Deprecated // Should be possible to nuke once we moved to Kotlin
 public interface PlainConsumer3<T1, T2, T3> {
 
     /**

@@ -46,3 +46,5 @@ google-services.json
 # Workdesk/Gulp generated files
 workdesk/node_modules
 workdesk/dist
+gliaInstantApp/release
+release

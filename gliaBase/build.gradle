@@ -1,0 +1,24 @@
+apply plugin: 'com.android.feature'
+
+android {
+    compileSdkVersion 26
+    baseFeature true
+    defaultConfig {
+        minSdkVersion 23
+        targetSdkVersion 26
+        versionCode 6
+        versionName "1.0"
+    }
+}
+
+dependencies {
+    application project(':gliaApp')
+    feature project(':gliaFeature')
+
+    // Google...
+    api "com.android.support:support-compat:26.1.0"
+
+    api (name: 'arcore_client', ext: 'aar')
+
+//    api project(':libCore')
+}

@@ -24,7 +24,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import timber.log.Timber;
-import toothpick.Scope;
 import toothpick.Toothpick;
 
 /**

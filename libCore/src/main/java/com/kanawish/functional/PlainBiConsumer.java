@@ -5,6 +5,7 @@ package com.kanawish.functional;
  * @param <T1> the first value type
  * @param <T2> the second value type
  */
+@Deprecated // Should be possible to nuke once we moved to Kotlin
 public interface PlainBiConsumer<T1, T2> {
 
     /**

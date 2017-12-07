@@ -1,10 +1,14 @@
 package com.kanawish.gl.utils;
 
-import org.apache.commons.lang3.ArrayUtils;
+import android.annotation.SuppressLint;
+
+import java.util.ArrayList;
 
 /**
  * Utility methods relating to Matrix and Vector math.
+ *
  */
+@Deprecated // Let's convert this puppy to Kotlin, make it nicer.
 public class MatrixUtils {
 
     private MatrixUtils() {
@@ -18,6 +22,7 @@ public class MatrixUtils {
      * @param matrix a 4x4 matrix, as per
      * @return a log-friendly text representation of the matrix.
      */
+    @SuppressLint("DefaultLocale")
     public static String matrixToString(float[] matrix) {
         if (matrix.length != 16) {
             return "Invalid float[] size, expecting 4x4 matrix.";
@@ -31,7 +36,10 @@ public class MatrixUtils {
                         "|%2$+6.2f,%6$+6.2f,%10$+6.2f,%14$+6.2f|\n" +
                         "|%3$+6.2f,%7$+6.2f,%11$+6.2f,%15$+6.2f|\n";
 
-        return String.format(format, (Object[])ArrayUtils.toObject(matrix));
+        ArrayList<Float> floats = new ArrayList<>();
+        for(float curr:matrix) floats.add(curr);
+
+        return String.format(format, floats);
     }
 
 }

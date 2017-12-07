@@ -1,4 +1,4 @@
-package com.kanawish.firebase
+package com.kanawish.librx.firebase
 
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -12,7 +12,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class FirebaseManager @Inject constructor() {
-
     sealed class State {
         object Initializing : State()
         class Anonymous(private val regFun: (String) -> Unit) : State() {
@@ -52,7 +51,6 @@ class FirebaseManager @Inject constructor() {
                     })
                     else -> e.onNext(State.Registered)
                 }
-
             }
 
             e.setCancellable { fb.removeAuthStateListener(listener) }
