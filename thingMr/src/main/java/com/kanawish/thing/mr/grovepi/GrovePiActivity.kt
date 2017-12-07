@@ -1,4 +1,4 @@
-package com.kanawish.mr4sg.grovepi
+package com.kanawish.thing.mr.grovepi
 
 import android.app.Activity
 import android.os.Bundle

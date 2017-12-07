@@ -23,7 +23,7 @@ import javax.microedition.khronos.opengles.GL10
  */
 class GLEp01Activity : Activity() {
 
-    private val fpsCounter = FpsCounter(PlainConsumer<Double> { this.refreshFps(it) })
+    private val fpsCounter = FpsCounter(this::refreshFps)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

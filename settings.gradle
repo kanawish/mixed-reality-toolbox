@@ -1,9 +1,7 @@
 include ':libVr', ':libCore', ':libFirebase'
 include ':gliaFeature', ':gliaApp', ':gliaBase', ':gliaInstantApp'
 include ':arDemo'
-include ':glDemo'
-include ':glEpisodes'
-include ':rajaDemo'
-include ':rajaVrDemo'
-include ':thingMr'
+include ':glDemo', ':glEpisodes'
+include ':rajaDemo', ':rajaVrDemo'
+include ':thingMr', ':thingCube'
 

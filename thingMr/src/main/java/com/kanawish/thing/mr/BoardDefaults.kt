@@ -1,4 +1,4 @@
-package com.kanawish.mr4sg
+package com.kanawish.thing.mr
 
 import android.os.Build
 

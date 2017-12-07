@@ -7,7 +7,6 @@ import android.opengl.Matrix
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.view.View
-import com.kanawish.functional.PlainConsumer
 import com.kanawish.gl.Program
 import com.kanawish.gl.Shader
 import com.kanawish.gl.utils.FpsCounter
@@ -28,7 +27,7 @@ class GLEp01Activity : Activity() {
 
     @Inject lateinit var glHelper: GLHelper
 
-    private val fpsCounter = FpsCounter(PlainConsumer<Double> { this.refreshFps(it) })
+    private val fpsCounter = FpsCounter(this::refreshFps)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

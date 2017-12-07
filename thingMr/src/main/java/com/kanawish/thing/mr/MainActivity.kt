@@ -1,4 +1,4 @@
-package com.kanawish.mr4sg
+package com.kanawish.thing.mr
 
 import android.app.Activity
 import android.os.Bundle
@@ -68,7 +68,7 @@ class MainActivity : Activity() {
 
         Timber.d("${manager.pwmList}")
         Timber.d("${manager.i2cBusList}")
-        Timber.d("${manager.i2sDeviceList}")
+//        Timber.d("${manager.i2sDeviceList}")
         Timber.d("${manager.spiBusList}")
         Timber.d("${manager.uartDeviceList}")
 

@@ -1,4 +1,4 @@
-package com.kanawish.mr4sg.di
+package com.kanawish.thing.cube.di
 
 import android.app.Application
 import toothpick.config.Module

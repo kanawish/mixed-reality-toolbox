@@ -1,12 +1,18 @@
 apply plugin: 'com.android.application'
+
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+
 android {
     compileSdkVersion 26
     buildToolsVersion '26.0.2'
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     defaultConfig {
-        applicationId "com.kanawish.thing.mr"
+        applicationId "com.kanawish.daydream.thing"
         minSdkVersion 24
         targetSdkVersion 26
         versionCode 1
@@ -14,26 +20,19 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    implementation project(':libCore')
-
-    compileOnly 'com.google.android.things:androidthings:+'
+    implementation project(':libVr')
+    implementation project(':libFirebase')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    implementation 'com.android.support:support-v4:26.1.0'
-
-    implementation 'com.google.android.things.contrib:driver-mma7660fc:0.2'
-    implementation 'com.google.android.things.contrib:driver-button:0.3'
 
     // DI stack
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
@@ -46,7 +45,12 @@ dependencies {
     api "io.reactivex.rxjava2:rxkotlin:2.1.0" // https://github.com/ReactiveX/RxKotlin/releases
     api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
 
+    // Data Manip / disk serialization
+    api "com.squareup.moshi:moshi:1.5.0"  // https://github.com/square/moshi/blob/master/CHANGELOG.md
+
     testImplementation 'junit:junit:4.12'
 }
 
-apply plugin: 'com.google.gms.google-services'
+// TODO: For a working firebase setup, you'll need to uncomment this and add google json config files to the project.
+// TODO: see https://firebase.google.com/docs/database/android/start/
+//apply plugin: 'com.google.gms.google-services'

@@ -1,4 +1,4 @@
-package com.kanawish.mr4sg.accelerometer
+package com.kanawish.thing.mr.accelerometer
 
 import android.app.Activity
 import android.content.Intent

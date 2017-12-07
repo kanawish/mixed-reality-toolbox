@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import kotlin.Unit;
 import timber.log.Timber;
 import toothpick.Toothpick;
 
@@ -37,7 +38,10 @@ public class GLEp02Activity extends Activity {
     private TextView fpsTextView;
     private TextView msTextView;
 
-    private FpsCounter fpsCounter = new FpsCounter(this::refreshFps);
+    private FpsCounter fpsCounter = new FpsCounter(msAverage -> {
+        refreshFps(msAverage);
+        return Unit.INSTANCE;
+    });
     private RelativeLayout rootLayout;
 
     @Override

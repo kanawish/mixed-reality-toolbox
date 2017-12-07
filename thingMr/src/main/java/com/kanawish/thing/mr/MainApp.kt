@@ -1,10 +1,10 @@
-package com.kanawish.mr4sg
+package com.kanawish.thing.mr
 
 import android.app.Application
 import com.kanawish.di.ActivityInjectionLifecycle
-import com.kanawish.mr4sg.di.openActivityScope
-import com.kanawish.mr4sg.di.openApplicationScope
-import com.kanawish.mr4sg.grovepi.GrovePiManager
+import com.kanawish.thing.mr.di.openActivityScope
+import com.kanawish.thing.mr.di.openApplicationScope
+import com.kanawish.thing.mr.grovepi.GrovePiManager
 import timber.log.Timber
 import toothpick.Toothpick
 import javax.inject.Inject
