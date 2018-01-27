@@ -36,12 +36,12 @@ dependencies {
     implementation 'com.google.android.things.contrib:driver-button:0.3'
 
     // DI stack
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.0.6"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.0.6"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.1.1" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
+    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.1.1"
+    implementation "com.github.stephanenicolas.toothpick:smoothie:1.1.1"
 
     // RxJava 2 for your declarative programming needs
-    api "io.reactivex.rxjava2:rxjava:2.1.2" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
+    api "io.reactivex.rxjava2:rxjava:2.1.5" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
     api "io.reactivex.rxjava2:rxandroid:2.0.1" // https://github.com/ReactiveX/RxAndroid/blob/2.x/CHANGES.md
     api "io.reactivex.rxjava2:rxkotlin:2.1.0" // https://github.com/ReactiveX/RxKotlin/releases
     api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md

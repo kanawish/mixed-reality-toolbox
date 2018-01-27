@@ -11,7 +11,7 @@ import javax.inject.Singleton
  * Created on 2017-10-02.
  */
 @Singleton
-class FirebaseManager @Inject constructor() {
+class FirebaseAuthManager @Inject constructor() {
     sealed class State {
         object Initializing : State()
         class Anonymous(private val regFun: (String) -> Unit) : State() {

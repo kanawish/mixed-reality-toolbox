@@ -13,12 +13,17 @@ import com.kanawish.gl.Program
 import com.kanawish.gl.Shader
 import com.kanawish.gl.utils.FpsCounter
 import com.kanawish.gl.utils.ModelUtils
+import com.kanawish.librx.firebase.FirebaseAuthManager
+import com.kanawish.librx.firebase.FirebaseDbManager
 import timber.log.Timber
+import javax.inject.Inject
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 
 class MainActivity : Activity() {
+
+    @Inject lateinit var firebaseDbManager: FirebaseDbManager
 
     companion object {
 
@@ -28,14 +33,18 @@ class MainActivity : Activity() {
 
         private val A_POSITION = "a_Position"
         private val A_NORMAL = "a_Normal"
+
+        private val LIGHT_POS_IN_WORLD_SPACE = floatArrayOf(0.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    private var glSurfaceView: GLSurfaceView? = null
+    private lateinit var glSurfaceView: GLSurfaceView
     private var fpsTextView: TextView? = null
     private var msTextView: TextView? = null
 
     private val fpsCounter = FpsCounter(this::refreshFps)
     private var rootLayout: RelativeLayout? = null
+
+    private lateinit var renderer: Ep02Renderer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,8 +56,9 @@ class MainActivity : Activity() {
         // Manifest feature request makes sure we have the right level of OpenGL support.
         glSurfaceView = findViewById<View>(R.id.glSurfaceView) as GLSurfaceView
 
-        glSurfaceView!!.setEGLContextClientVersion(2)
-        glSurfaceView!!.setRenderer(Ep02Renderer())
+        glSurfaceView.setEGLContextClientVersion(2)
+        renderer = Ep02Renderer()
+        glSurfaceView.setRenderer(renderer)
 
         fpsTextView = findViewById<View>(R.id.fpsTextView) as TextView
         msTextView = findViewById<View>(R.id.msTextView) as TextView
@@ -56,12 +66,13 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        glSurfaceView!!.onResume()
+        glSurfaceView.onResume()
+        firebaseDbManager.orientationMatrix().subscribe { glSurfaceView.queueEvent{ renderer.orientationMatrix = it } }
     }
 
     override fun onPause() {
+        glSurfaceView.onPause()
         super.onPause()
-        glSurfaceView!!.onPause()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -85,7 +96,7 @@ class MainActivity : Activity() {
     private inner class Ep02Renderer internal constructor() : GLSurfaceView.Renderer {
 
         private var cube: ModelUtils.Ep02Model? = null
-        private var uLightPosition = FloatArray(3)
+        private var uLightPosition = FloatArray(4)
 
         private val modelMatrix = FloatArray(16)
         private val viewMatrix = FloatArray(16)
@@ -104,6 +115,20 @@ class MainActivity : Activity() {
         private var aNormalHandle: Int = 0
 
         private var started: Long = 0
+
+        var orientationMatrix = FloatArray(16).apply {
+            Matrix.setIdentityM(this, 0)
+        }
+
+        internal fun cameraAdjust() {
+            Matrix.translateM(viewMatrix,0,0f,1f,1f)
+        }
+
+        internal fun orientModel(orientationMatrix: FloatArray) {
+            Matrix.setIdentityM(modelMatrix, 0)                // Initialize
+            Matrix.translateM(modelMatrix, 0, 0f, 0f, -0.5f)     // Move model in front of camera (-Z is in front of us)
+            Matrix.multiplyMM(modelMatrix, 0, modelMatrix, 0, orientationMatrix, 0)
+        }
 
         override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
             Timber.i("Ep00Renderer.onSurfaceCreated()")
@@ -141,8 +166,7 @@ class MainActivity : Activity() {
             cube = ModelUtils.buildCube(1f)
 
             // LIGHTING INIT
-            uLightPosition = floatArrayOf(0f, 2f, -2f)
-
+            uLightPosition = FloatArray(4)
 
             // VIEW MATRIX INIT - This call sets up the viewMatrix (our camera).
             Matrix.setLookAtM(
@@ -151,6 +175,7 @@ class MainActivity : Activity() {
                     0f, 0f, -5f, // center of view
                     0f, 1.0f, 0.0f  // 'up' vector
             )
+
         }
 
         override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
@@ -201,8 +226,8 @@ class MainActivity : Activity() {
 
 
             // MODEL - Prepares the Model transformation Matrix, for the given elapsed time.
-            animateModel(System.currentTimeMillis() - started)
-
+//            animateModel(System.currentTimeMillis() - started)
+            orientModel(orientationMatrix)
 
             // MODEL-VIEW-PROJECTION
             // Multiply view by model matrix. uMvMatrix holds the result.
@@ -215,7 +240,8 @@ class MainActivity : Activity() {
             // Assign matrix to uniform handle.
             GLES20.glUniformMatrix4fv(uMvpMatrixHandle, 1, false, uMvpMatrix, 0)
 
-
+            // Set the position of the light
+            Matrix.multiplyMV(uLightPosition, 0, viewMatrix, 0, LIGHT_POS_IN_WORLD_SPACE, 0)
             // Assign light position to uniform handle.
             GLES20.glUniform3f(uLightPositionHandle, uLightPosition[0], uLightPosition[1], uLightPosition[2])
 

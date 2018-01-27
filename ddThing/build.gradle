@@ -11,8 +11,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     defaultConfig {
-        applicationId "com.kanawish.daydream.thing"
+        applicationId "com.kanawish.dd.thing"
         minSdkVersion 24
         targetSdkVersion 26
         versionCode 1
@@ -20,6 +21,7 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -48,9 +50,10 @@ dependencies {
     // Data Manip / disk serialization
     api "com.squareup.moshi:moshi:1.5.0"  // https://github.com/square/moshi/blob/master/CHANGELOG.md
 
+    implementation "org.joml:joml-android:1.9.3-SNAPSHOT"
     testImplementation 'junit:junit:4.12'
 }
 
 // TODO: For a working firebase setup, you'll need to uncomment this and add google json config files to the project.
 // TODO: see https://firebase.google.com/docs/database/android/start/
-//apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.gms.google-services'
