@@ -2,21 +2,18 @@ package com.kanawish.thing.mr
 
 import android.app.Activity
 import android.os.Bundle
-import android.view.KeyEvent
-import com.google.android.things.contrib.driver.button.Button
-import com.google.android.things.contrib.driver.button.ButtonInputDriver
-import com.google.android.things.pio.Gpio
+import com.google.android.things.pio.I2cDevice
 import com.google.android.things.pio.PeripheralManagerService
-import com.google.android.things.pio.SpiDevice
-import com.jakewharton.rxrelay2.PublishRelay
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import timber.log.Timber
 import java.io.IOException
-import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
+import kotlin.experimental.and
+import kotlin.experimental.inv
+import kotlin.experimental.or
+import kotlin.math.floor
 
-
-const val SET_MOTOR_POWER = 21
 
 class MainActivity : Activity() {
 
@@ -24,42 +21,8 @@ class MainActivity : Activity() {
         PeripheralManagerService()
     }
 
-    val blueLED by lazy {
-        manager.openGpio(gpioPin(13)).apply {
-            setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
-        }
-    }
-
-    val buttonDrive by lazy {
-        ButtonInputDriver(gpioPin(15), Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE).apply {
-            register()
-        }
-    }
-
-    val spiDev0 by lazy {
-        // TBD: Any reasons to prefer .0 over .1?
-        manager.openSpiDevice("SPI3.0").apply {
-            setMode(SpiDevice.MODE0)
-            setFrequency(500000)
-            setBitsPerWord(8)
-            setBitJustification(false)
-        }
-    }
-
-    val spiDev1 by lazy {
-        // TBD: Any reasons to prefer .0 over .1?
-        manager.openSpiDevice("SPI3.1").apply {
-            setMode(SpiDevice.MODE0)
-            setFrequency(500000)
-            setBitsPerWord(8)
-            setBitJustification(false)
-        }
-    }
-
-    val keyRelay = PublishRelay.create<Pair<Int, KeyEvent>>()
-
-    val disposables = CompositeDisposable()
-
+    var device: I2cDevice? = null
+    var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,40 +35,44 @@ class MainActivity : Activity() {
         Timber.d("${manager.spiBusList}")
         Timber.d("${manager.uartDeviceList}")
 
-        manager.gpioList.forEach {
-            Timber.d("reset $it")
-            var gpio:Gpio? = null
-            try {
-                 gpio = manager.openGpio(it).apply {
-                    setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
-                    setActiveType(Gpio.ACTIVE_HIGH)
-                    value = false
-                }
-            } catch (e: IOException) {
-                Timber.d(e, "failed to open $it")
-            } finally {
-                gpio?.apply {
-                    safeClose(this::close,"attempting to close $it")
-                }
-            }
+        // Attempt to access the I2C device
+        try {
+            val manager = PeripheralManagerService()
+            device = manager.openI2cDevice("I2C1", 0x60)
+
+            disposable = Observable
+                    .fromArray(
+                            {
+                                device?.init()
+                                motors[0].release()
+                                motors[0].speed(64)
+                                motors[0].forward()
+                            },
+                            { motors[0].speed(128) },
+                            { motors[0].speed(255) },
+                            { motors[0].release() })
+                    .concatMap { command ->
+                        Observable.timer(1, TimeUnit.SECONDS).map { command }
+                    }
+                    .doOnNext { _ -> Timber.i("execute command()") }
+                    .subscribe { command -> command() }
+
+        } catch (e: IOException) {
+            Timber.w("Unable to access I2C device $e")
         }
 
-/*
-        byteArrayOf(0x01, 0x06, 80).also {
-            Timber.d("SPI LED Test")
-            spiDev0.write(it, it.size)
-            spiDev1.write(it, it.size)
-        }
-*/
 
-        Timber.d("init $blueLED")
-        Timber.d("init $buttonDrive")
+//        motors[0].speed(150)
+//        motors[0].forward()
+
 
     }
 
     override fun onResume() {
         super.onResume()
 
+        Timber.w("onResume()")
+/*
         disposables += keyRelay
                 .filter { (code, _) -> code == KeyEvent.KEYCODE_SPACE }
                 .map { (_, event) -> event.action == KeyEvent.ACTION_DOWN }
@@ -113,27 +80,24 @@ class MainActivity : Activity() {
                 .subscribe {
                     blueLED.value = it
                 }
-
-        queryManufacturer(spiDev0)
-        queryManufacturer(spiDev1)
+*/
 
     }
 
     override fun onPause() {
         super.onPause()
+        Timber.w("onPause()")
+        disposable?.dispose()
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        buttonDrive.unregister()
-        safeClose(buttonDrive::close, "on buttonDrive.close()")
-        safeClose(blueLED::close, "on blueLED.close()")
-        safeClose(spiDev0::close, "on spiDev0.close()")
-        safeClose(spiDev1::close, "on spiDev1.close()")
+        Timber.i("onDest")
+        safeClose("Unable to close I2C device %s", { device?.close() })
     }
 
-    fun safeClose(close: () -> Unit, errMsg: String) {
+    private fun safeClose(errMsg: String, close: () -> Unit) {
         try {
             close()
         } catch (e: IOException) {
@@ -141,160 +105,132 @@ class MainActivity : Activity() {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        keyRelay.accept(keyCode to event)
-        return super.onKeyDown(keyCode, event)
+    class DCMotor(val pwm: Int, val in1: Int, val in2: Int)
+
+    val motors = arrayOf(
+            DCMotor(8, 10, 9),
+            DCMotor(13, 11, 12),
+            DCMotor(2, 4, 3),
+            DCMotor(7, 5, 6)
+    )
+
+    fun DCMotor.forward() {
+        setPin(in2, 0)
+        setPin(in1, 1)
     }
 
-    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
-        keyRelay.accept(keyCode to event)
-        return super.onKeyUp(keyCode, event)
-    }
-}
-
-fun queryManufacturer(bus:SpiDevice) {
-    byteArrayOf(0x01, BpSpiMessageType.GET_MANUFACTURER.code()).apply {
-        bus.write(this, this.size)
+    fun DCMotor.backward() {
+        setPin(in1, 0)
+        setPin(in2, 1)
     }
 
-    ByteArray(20).apply {
-        bus.read(this,this.size)
-        Timber.d(toString(Charset.defaultCharset()))
+    fun DCMotor.release() {
+        setPin(in1, 0)
+        setPin(in2, 0)
     }
+
+    fun DCMotor.speed(speed: Int) {
+        (if (speed < 0) 0 else if (speed > 255) 255 else speed).let {
+            device?.setPWM(pwm, 0, it * 16)
+        }
+    }
+
+    private fun setPin(pin: Int, value: Int) {
+        check((pin >= 0) && (pin <= 15)) { "PWM pin must be between 0 and 15 inclusive" }
+        check(value == 0 || value == 1) { "Pin value must be 0 or 1!" }
+
+        if (value == 0) device?.setPWM(pin, 0, 4096)
+        if (value == 1) device?.setPWM(pin, 4096, 0)
+    }
+
 }
 
-const val PORT_1 = 0x01
-const val PORT_2 = 0x02
-const val PORT_3 = 0x04
-const val PORT_4 = 0x08
+// NOTE: There's a software reset function in the original drivers too... skipping it for now.
 
-const val PORT_A = 0x01
-const val PORT_B = 0x02
-const val PORT_C = 0x04
-const val PORT_D = 0x08
-
-const val MOTOR_FLOAT = -128
-
-enum class BpSpiMessageType {
-    NONE,
-
-    GET_MANUFACTURER,
-    GET_NAME,
-    GET_HARDWARE_VERSION,
-    GET_FIRMWARE_VERSION,
-    GET_ID,
-    SET_LED,
-    GET_VOLTAGE_3V3,
-    GET_VOLTAGE_5V,
-    GET_VOLTAGE_9V,
-    GET_VOLTAGE_VCC,
-    SET_ADDRESS,
-
-    SET_SENSOR_TYPE,
-
-    GET_SENSOR_1,
-    GET_SENSOR_2,
-    GET_SENSOR_3,
-    GET_SENSOR_4,
-
-    I2C_TRANSACT_1,
-    I2C_TRANSACT_2,
-    I2C_TRANSACT_3,
-    I2C_TRANSACT_4,
-
-    SET_MOTOR_POWER,
-
-    SET_MOTOR_POSITION,
-
-    SET_MOTOR_POSITION_KP,
-
-    SET_MOTOR_POSITION_KD,
-
-    SET_MOTOR_DPS,
-
-    SET_MOTOR_DPS_KP,
-
-    SET_MOTOR_DPS_KD,
-
-    SET_MOTOR_LIMITS,
-
-    OFFSET_MOTOR_ENCODER,
-
-    GET_MOTOR_A_ENCODER,
-    GET_MOTOR_B_ENCODER,
-    GET_MOTOR_C_ENCODER,
-    GET_MOTOR_D_ENCODER,
-
-    GET_MOTOR_A_STATUS,
-    GET_MOTOR_B_STATUS,
-    GET_MOTOR_C_STATUS,
-    GET_MOTOR_D_STATUS ;
-
-    fun code() = ordinal.toByte()
+fun I2cDevice.init() {
+//    self.i2c = get_i2c_device(address, i2c, i2c_bus)
+    Timber.d("init() Resetting PCA9685 MODE1 (without SLEEP) and MODE2")
+    setAllPWM(0, 0)
+    writeRegByte(__MODE2, __OUTDRV)
+    writeRegByte(__MODE1, __ALLCALL)
+    // wait for oscillator
+    Thread.sleep(5)
+    var mode1 = readRegByte(__MODE1)
+    Timber.i("mode1 = ${mode1.toString(16)}")
+    // wake up (reset sleep)
+    mode1 = mode1 and __SLEEP.toByte().inv()
+    Timber.i("writeRegByte(${__MODE1.toString(16)}: ${mode1.toString(16)}")
+    writeRegByte(__MODE1, mode1)
+    // wait for oscillator
+    Thread.sleep(5)
+    Timber.d("init() complete")
 }
 
-enum class SensorType {
-    NONE,
-    ONE,
-    I2C,
-    CUSTOM,
+fun I2cDevice.setPWMFreq(freq: Float) {
+    // "Sets the PWM frequency"
+    var prescaleval = 25000000.0    // 25MHz
+    prescaleval /= 4096.0       // 12-bit
+    prescaleval /= freq
+    prescaleval -= 1.0
 
-    TOUCH,
-    NXT_TOUCH,
-    EV3_TOUCH,
-
-    NXT_LIGHT_ON,
-    NXT_LIGHT_OFF,
-
-    NXT_COLOR_RED,
-    NXT_COLOR_GREEN,
-    NXT_COLOR_BLUE,
-    NXT_COLOR_FULL,
-    NXT_COLOR_OFF,
-
-    NXT_ULTRASONIC,
-
-    EV3_GYRO_ABS,
-    EV3_GYRO_DPS,
-    EV3_GYRO_ABS_DPS,
-
-    EV3_COLOR_REFLECTED,
-    EV3_COLOR_AMBIENT,
-    EV3_COLOR_COLOR,
-    EV3_COLOR_RAW_REFLECTED,
-    EV3_COLOR_COLOR_COMPONENTS,
-
-    EV3_ULTRASONIC_CM,
-    EV3_ULTRASONIC_INCHES,
-    EV3_ULTRASONIC_LISTEN,
-
-    EV3_INFRARED_PROXIMITY,
-    EV3_INFRARED_SEEK,
-    EV3_INFRARED_REMOTE
+    Timber.i("Setting PWM frequency to $freq Hz")
+    Timber.i("Estimated pre-scale: $prescaleval")
+    val prescale = floor(prescaleval + 0.5)
+    Timber.i("Final pre-scale: $prescale")
+    val oldmode = readRegByte(__MODE1)
+    // sleep
+    val newmode = (oldmode and 0x7F) or 0x10
+    // go to sleep
+    writeRegByte(__MODE1, newmode)
+    writeRegByte(__PRESCALE, floor(prescale).toByte())
+    writeRegByte(__MODE1, oldmode)
+    // FIXME following python's pattern, but...
+    Thread.sleep(5)
+    writeRegByte(__MODE1, oldmode and 0x80.toByte())
 }
 
-enum class SensorState {
-    VALID_DATA,
-    NOT_CONFIGURED,
-    CONFIGURING,
-    NO_DATA,
-    I2C_ERROR
+fun I2cDevice.setPWM(channel: Int, on: Int, off: Int) {
+    Timber.i("setPWM() start")
+    writeRegByte(__LED0_ON_L + 4 * channel, on and 0xFF)
+    writeRegByte(__LED0_ON_H + 4 * channel, on shr 8)
+    writeRegByte(__LED0_OFF_L + 4 * channel, off and 0xFF)
+    writeRegByte(__LED0_OFF_H + 4 * channel, off shr 8)
+    Timber.i("setPWM() end")
 }
 
-// Sensor type custom stuff
-const val SC_PIN1_9V = 0x0002
-const val SC_PIN5_OUT = 0x0010
-const val SC_PIN5_STATE = 0x0020
-const val SC_PIN6_OUT = 0x0100
-const val SC_PIN6_STATE = 0x0200
-const val SC_PIN1_ADC = 0x1000
-const val SC_PIN6_ADC = 0x4000
+fun I2cDevice.setAllPWM(on: Int, off: Int) {
+    Timber.i("setAllPWM() start")
+    writeRegByte(__ALL_LED_ON_L, on and 0xFF)
+    writeRegByte(__ALL_LED_ON_H, on shr 8)
+    writeRegByte(__ALL_LED_OFF_L, off and 0xFF)
+    writeRegByte(__ALL_LED_OFF_H, off shr 8)
+    Timber.i("setAllPWM() end")
+}
 
-// I2C stuff
-const val I2C_MID_CLOCK = 0x01 // Send the clock pulse between reading and writing. Required by the NXT US sensor.
-const val I2C_PIN1_9V = 0x02 // 9v pullup on pin 1
-const val I2C_SAME = 0x04 // Keep performing the same transaction e.g. keep polling a sensor
+fun I2cDevice.writeRegByte(address: Int, value: Int) {
+    Timber.i("writeRegByte ${address.toString(16)}: ${value.toString(16)}")
+    writeRegByte(address, value.toByte())
+}
 
-// Motor status flag stuff
-const val MSF_LOW_VOLTAGE_FLOAT = 0x01 // If the motors are floating due to low battery voltage
-const val MSF_OVERLOADED = 0x02 // If the motors aren't close to the target (applies to position control and dps speed control).
+// Registers/etc.
+const val __MODE1 = 0x00
+const val __MODE2 = 0x01
+const val __SUBADR1 = 0x02
+const val __SUBADR2 = 0x03
+const val __SUBADR3 = 0x04
+const val __PRESCALE = 0xFE
+const val __LED0_ON_L = 0x06
+const val __LED0_ON_H = 0x07
+const val __LED0_OFF_L = 0x08
+const val __LED0_OFF_H = 0x09
+const val __ALL_LED_ON_L = 0xFA
+const val __ALL_LED_ON_H = 0xFB
+const val __ALL_LED_OFF_L = 0xFC
+const val __ALL_LED_OFF_H = 0xFD
+
+// Bits
+const val __RESTART = 0x80
+const val __SLEEP = 0x10
+const val __ALLCALL = 0x01
+const val __INVRT = 0x10
+const val __OUTDRV = 0x04

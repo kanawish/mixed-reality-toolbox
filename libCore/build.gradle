@@ -4,12 +4,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 
@@ -23,7 +23,7 @@ dependencies {
 
     // Timber Logging API: Better method signatures, easy log-level-by-flavor management, decent lint checks, etc.
     // https://github.com/JakeWharton/timber
-    api "com.jakewharton.timber:timber:4.5.1" // https://github.com/JakeWharton/timber/blob/master/CHANGELOG.md
+    api "com.jakewharton.timber:timber:4.6.0" // https://github.com/JakeWharton/timber/blob/master/CHANGELOG.md
 
     // Square Networking
 //    api "com.squareup.okhttp3:okhttp:3.8.1" // https://github.com/square/okhttp/blob/master/CHANGELOG.md
@@ -34,9 +34,9 @@ dependencies {
 //    api "com.squareup.retrofit2:adapter-rxjava2:2.2.0"
 
     // DI stack
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.0.6"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.0.6"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.1.1" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
+    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.1.1"
+    implementation "com.github.stephanenicolas.toothpick:smoothie:1.1.1"
 
     testImplementation 'junit:junit:4.12'
 }

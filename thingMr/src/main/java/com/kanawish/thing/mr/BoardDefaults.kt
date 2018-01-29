@@ -5,9 +5,9 @@ import android.os.Build
 /**
  * NOTE: Only went with popular/latest devices.
  */
-enum class Device(val devId: String) {
-    DEVICE_RPI3("rpi3"),
-    DEVICE_IMX7D_PICO("imx7d_pico"),
+enum class Board(val devId: String) {
+    Board_RPI3("rpi3"),
+    Board_IMX7D_PICO("imx7d_pico"),
     UNKNOWN("")
 }
 
@@ -25,12 +25,12 @@ val map = hashMapOf(
         31 to ("BCM6" to "GPIO_34")
         )
 
-fun currentDevice(): Device = (Device.values().find { it.devId == Build.DEVICE } ?: Device.UNKNOWN)
+fun currentDevice(): Board = (Board.values().find { it.devId == Build.DEVICE } ?: Board.UNKNOWN)
 
 fun gpioPin(number:Int) = map.get(number)?.let { (rpi,mx7) ->
     when (currentDevice()) {
-        Device.DEVICE_RPI3 -> rpi
-        Device.DEVICE_IMX7D_PICO -> mx7
-        Device.UNKNOWN -> throw IllegalStateException("currentDevice() is UNKNOWN.")
+        Board.Board_RPI3 -> rpi
+        Board.Board_IMX7D_PICO -> mx7
+        Board.UNKNOWN -> throw IllegalStateException("currentDevice() is UNKNOWN.")
     }
 }

@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "com.kanawish.thing.mr"
         minSdkVersion 24
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 
@@ -25,12 +25,13 @@ android {
 }
 
 dependencies {
+//    implementation project(':libFirebase')
     implementation project(':libCore')
 
     compileOnly 'com.google.android.things:androidthings:+'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.android.support:support-v4:27.0.2'
 
     implementation 'com.google.android.things.contrib:driver-mma7660fc:0.2'
     implementation 'com.google.android.things.contrib:driver-button:0.3'
@@ -49,4 +50,4 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'
