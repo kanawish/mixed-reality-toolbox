@@ -1,21 +1,38 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.2.21'
+    ext.kotlin_version = '1.2.31'
+    ext.ktx_version ='0.2'
+
+    ext.support_version = '27.1.1'
+
+    ext.toothpick_version = '1.1.2'
+
+    ext {
+        versions = [
+                'compileSdk': 27,
+                'buildTools': "27.0.3",
+                'minSdk'    : 19,
+                'targetSdk' : 26
+        ]
+    }
+
     repositories {
         google()
         jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha09'
+        classpath 'com.android.tools.build:gradle:3.2.0-alpha09'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:3.1.0'
     }
+
 }
 
 allprojects {
     repositories {
+        // TODO: Get rid of this when possible.
         flatDir {
             dirs '../arLibsRepo'
         }

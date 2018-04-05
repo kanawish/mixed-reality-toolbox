@@ -1,16 +1,19 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
     defaultConfig {
         applicationId "com.kanawish.sample.raja"
-        minSdkVersion 19
-        targetSdkVersion 26
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
     }
@@ -32,19 +35,17 @@ android {
 }
 
 dependencies {
-    compile project(':libVr')
+    implementation project(':libVr')
 
     // DI Stack
-    annotationProcessor "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    compile "com.github.stephanenicolas.toothpick:toothpick-runtime:1.0.6"
-    compile "com.github.stephanenicolas.toothpick:smoothie:1.0.6"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     // APT/Plugin based boilerplate removal
-    compile "com.jakewharton:butterknife:8.6.0" // https://github.com/JakeWharton/butterknife/blob/master/CHANGELOG.md
-    annotationProcessor "com.jakewharton:butterknife-compiler:8.6.0"
+    implementation "com.jakewharton:butterknife:8.6.0" // https://github.com/JakeWharton/butterknife/blob/master/CHANGELOG.md
+    kapt "com.jakewharton:butterknife-compiler:8.6.0"
 
     // Latest version of Rajawali
     // see https://github.com/Rajawali/Rajawali
     // and https://travis-ci.org/Rajawali/Rajawali/builds
-    compile 'org.rajawali3d:rajawali:1.1.777'
+    implementation 'org.rajawali3d:rajawali:1.1.777'
 }

@@ -27,6 +27,10 @@ val map = hashMapOf(
 
 fun currentDevice(): Board = (Board.values().find { it.devId == Build.DEVICE } ?: Board.UNKNOWN)
 
+fun Board.i2cBus():String = when(this) {
+    Board.Board_RPI3, Board.Board_IMX7D_PICO -> "I2C1"
+    Board.UNKNOWN -> ""
+}
 fun gpioPin(number:Int) = map.get(number)?.let { (rpi,mx7) ->
     when (currentDevice()) {
         Board.Board_RPI3 -> rpi

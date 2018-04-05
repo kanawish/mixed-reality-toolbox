@@ -1,16 +1,19 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
     defaultConfig {
         applicationId "com.kanawish.sample.raja.vr"
-        minSdkVersion 19
-        targetSdkVersion 26
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
     }
@@ -34,9 +37,7 @@ dependencies {
     implementation project(':libFirebase')
 
     // DI Stack
-    annotationProcessor "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.0.6"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.0.6"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     // APT/Plugin based boilerplate removal
     implementation "com.jakewharton:butterknife:8.6.0" // https://github.com/JakeWharton/butterknife/blob/master/CHANGELOG.md

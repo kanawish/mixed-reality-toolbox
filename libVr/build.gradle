@@ -4,15 +4,15 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 27
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -30,12 +30,10 @@ android {
 dependencies {
     api project(':libCore')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-
     // Google Framework Dependencies
-    api "com.android.support:support-v13:27.0.2"
-    api "com.android.support:appcompat-v7:27.0.2"
-    api "com.android.support:design:27.0.2"
+    api "com.android.support:support-v13:$support_version"
+    api "com.android.support:appcompat-v7:$support_version"
+    api "com.android.support:design:$support_version"
 
     api "com.google.vr:sdk-audio:1.101.0"
     api "com.google.vr:sdk-base:1.101.0"
@@ -43,9 +41,7 @@ dependencies {
     api "com.google.vr:sdk-controller:1.101.0"
 
     // DI stack
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.1.1" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.1.1"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.1.1"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     // Testing
     testImplementation 'junit:junit:4.12'

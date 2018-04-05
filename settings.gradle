@@ -1,7 +1,7 @@
-include ':libVr', ':libCore', ':libFirebase'
+include ':libVr', ':libCore', ':libFirebase', ':libNearby'
 include ':gliaFeature', ':gliaApp', ':gliaBase', ':gliaInstantApp'
 include ':arDemo', ':ddThing'
 include ':glDemo', ':glEpisodes'
 include ':rajaDemo', ':rajaVrDemo'
-include ':thingMr', ':thingCube'
+include ':thingRobot', ':thingCube'
 

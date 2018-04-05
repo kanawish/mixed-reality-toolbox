@@ -4,8 +4,8 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -14,8 +14,8 @@ android {
 
     defaultConfig {
         applicationId "com.kanawish.dd.thing"
-        minSdkVersion 24
-        targetSdkVersion 27
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -37,12 +37,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     // DI stack
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.1.1" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.1.1"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.1.1"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     // RxJava 2 for your declarative programming needs
-    api "io.reactivex.rxjava2:rxjava:2.1.5" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
+    api "io.reactivex.rxjava2:rxjava:2.1.10" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
     api "io.reactivex.rxjava2:rxandroid:2.0.1" // https://github.com/ReactiveX/RxAndroid/blob/2.x/CHANGES.md
     api "io.reactivex.rxjava2:rxkotlin:2.1.0" // https://github.com/ReactiveX/RxKotlin/releases
     api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
@@ -56,4 +54,4 @@ dependencies {
 
 // TODO: For a working firebase setup, you'll need to uncomment this and add google json config files to the project.
 // TODO: see https://firebase.google.com/docs/database/android/start/
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'

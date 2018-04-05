@@ -3,14 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion versions.compileSdk
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
     defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 26
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 6
         versionName "1.0"
     }
@@ -34,16 +34,11 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.0.6"
-    // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.0.6"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.0.6"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     // UI
     implementation 'com.dmitrymalkovich.android:material-design-dimens:1.4' // https://github.com/DmitryMalkovich/material-design-dimens
 
     // Testing
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }

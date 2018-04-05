@@ -4,12 +4,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 27
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -21,23 +21,21 @@ dependencies {
     api project(':libCore')
 
     // DI stack
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.1.1" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.1.1"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.1.1"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     // Apache
     api "org.apache.commons:commons-lang3:3.7"
 
     // RxJava 2 for your declarative programming needs
-    api "io.reactivex.rxjava2:rxjava:2.1.5" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
+    api "io.reactivex.rxjava2:rxjava:2.1.10" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
     api "io.reactivex.rxjava2:rxandroid:2.0.1" // https://github.com/ReactiveX/RxAndroid/blob/2.x/CHANGES.md
     api "io.reactivex.rxjava2:rxkotlin:2.1.0" // https://github.com/ReactiveX/RxKotlin/releases
     api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
 
     // Firebase
-    api "com.google.firebase:firebase-core:11.8.0"
-    api "com.google.firebase:firebase-auth:11.8.0"
-    api "com.google.firebase:firebase-database:11.8.0"
+    api "com.google.firebase:firebase-core:12.0.1"
+    api "com.google.firebase:firebase-auth:12.0.1"
+    api "com.google.firebase:firebase-database:12.0.1"
 
     // Testing
     testImplementation 'junit:junit:4.12'

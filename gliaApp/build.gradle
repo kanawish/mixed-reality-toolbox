@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion versions.compileSdk
     android {
         compileOptions {
             sourceCompatibility 1.8
@@ -10,8 +10,8 @@ android {
     }
     defaultConfig {
         applicationId "com.kanawish.glia"
-        minSdkVersion 23
-        targetSdkVersion 26
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 11
         versionName "1.0"
     }

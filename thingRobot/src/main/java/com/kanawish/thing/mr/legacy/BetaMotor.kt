@@ -1,9 +1,9 @@
-package com.kanawish.thing.mr
+package com.kanawish.thing.mr.legacy
 
 import android.app.Activity
 import android.os.Bundle
 import com.google.android.things.pio.I2cDevice
-import com.google.android.things.pio.PeripheralManager
+import com.google.android.things.pio.PeripheralManagerService
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import timber.log.Timber
@@ -14,11 +14,10 @@ import kotlin.experimental.inv
 import kotlin.experimental.or
 import kotlin.math.floor
 
-
-class MainActivity : Activity() {
+class BetaMotorActivity : Activity() {
 
     val manager by lazy {
-        PeripheralManager.getInstance()
+        PeripheralManagerService()
     }
 
     var device: I2cDevice? = null

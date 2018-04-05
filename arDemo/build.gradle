@@ -4,8 +4,8 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '26.0.2'
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -13,8 +13,8 @@ android {
     }
     defaultConfig {
         applicationId "com.kanawish.sample.gldemo"
-        minSdkVersion 24
-        targetSdkVersion 27
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -36,9 +36,7 @@ dependencies {
 //    implementation "org.opencv:OpenCV-Android:3.1.0"
 
     // DI stack
-    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:1.1.1" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-    implementation "com.github.stephanenicolas.toothpick:toothpick-runtime:1.1.1"
-    implementation "com.github.stephanenicolas.toothpick:smoothie:1.1.1"
+    kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     testImplementation 'junit:junit:4.12'
 }
