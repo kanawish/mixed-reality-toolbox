@@ -3,18 +3,22 @@ package com.kanawish.thing.mr
 import android.app.Activity
 import android.os.Bundle
 import com.google.android.things.contrib.driver.motorhat.MotorHat
-import com.google.android.things.pio.PeripheralManagerService
+import com.google.android.things.pio.PeripheralManager
+import com.kanawish.nearby.NearbyConnectionManager
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 
 class MainActivity : Activity() {
 
+    @Inject lateinit var nearbyManager: NearbyConnectionManager
+
     val manager by lazy {
-        PeripheralManagerService()
+        PeripheralManager.getInstance()
     }
 
     val motorHat: MotorHat by lazy {
@@ -25,19 +29,25 @@ class MainActivity : Activity() {
         }
     }
 
-    //    var device: I2cDevice? = null
     var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.w("onCreate()")
         super.onCreate(savedInstanceState)
 
         Timber.d("${manager.gpioList}")
 
         Timber.d("${manager.pwmList}")
         Timber.d("${manager.i2cBusList}")
-//        Timber.d("${manager.i2sDeviceList}")
         Timber.d("${manager.spiBusList}")
         Timber.d("${manager.uartDeviceList}")
+
+        nearbyManager.autoConnect()
+    }
+
+    override fun onResume() {
+        Timber.w("onResume()")
+        super.onResume()
 
         // Attempt to access the I2C device
         try {
@@ -67,38 +77,26 @@ class MainActivity : Activity() {
                     }
                     .doOnNext { _ -> Timber.i("execute command()") }
                     .subscribe { command ->
-                        command(0)
-                        command(1)
+                        command(0) // motor 0
+                        command(1) // motor 1, etc.
                     }
 
         } catch (e: IOException) {
             Timber.w("Unable to access I2C device $e")
         }
-
-
-//        motors[0].speed(150)
-//        motors[0].forward()
-
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        Timber.w("onResume()")
-
     }
 
     override fun onPause() {
-        super.onPause()
         Timber.w("onPause()")
+        super.onPause()
+
         disposable?.dispose()
     }
 
     override fun onDestroy() {
+        Timber.i("onDestroy()")
         super.onDestroy()
 
-        Timber.i("onDest")
         safeClose("Unable to close I2C device %s", { motorHat.close() })
     }
 

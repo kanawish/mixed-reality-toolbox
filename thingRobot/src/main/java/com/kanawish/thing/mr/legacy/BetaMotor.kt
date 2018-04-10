@@ -3,7 +3,7 @@ package com.kanawish.thing.mr.legacy
 import android.app.Activity
 import android.os.Bundle
 import com.google.android.things.pio.I2cDevice
-import com.google.android.things.pio.PeripheralManagerService
+import com.google.android.things.pio.PeripheralManager
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import timber.log.Timber
@@ -17,7 +17,7 @@ import kotlin.math.floor
 class BetaMotorActivity : Activity() {
 
     val manager by lazy {
-        PeripheralManagerService()
+        PeripheralManager.getInstance()
     }
 
     var device: I2cDevice? = null

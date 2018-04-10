@@ -1,12 +1,13 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion versions.compileSdk
 
     defaultConfig {
-        minSdkVersion versions.minSdk
+        minSdkVersion versions.minSdkPermissions
         targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
@@ -26,7 +27,7 @@ android {
 dependencies {
     implementation project(':libCore')
 
-    api 'com.google.android.gms:play-services-nearby:12.0.0'
+    api 'com.google.android.gms:play-services-nearby:11.8.0'
 
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 

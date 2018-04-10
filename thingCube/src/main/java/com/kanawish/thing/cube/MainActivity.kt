@@ -13,7 +13,6 @@ import com.kanawish.gl.Program
 import com.kanawish.gl.Shader
 import com.kanawish.gl.utils.FpsCounter
 import com.kanawish.gl.utils.ModelUtils
-import com.kanawish.librx.firebase.FirebaseAuthManager
 import com.kanawish.librx.firebase.FirebaseDbManager
 import timber.log.Timber
 import javax.inject.Inject
@@ -67,7 +66,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         glSurfaceView.onResume()
-        firebaseDbManager.orientationMatrix().subscribe { glSurfaceView.queueEvent{ renderer.orientationMatrix = it } }
+        firebaseDbManager.orientationMatrix().subscribe { glSurfaceView.queueEvent { renderer.orientationMatrix = it } }
     }
 
     override fun onPause() {
@@ -121,7 +120,7 @@ class MainActivity : Activity() {
         }
 
         internal fun cameraAdjust() {
-            Matrix.translateM(viewMatrix,0,0f,1f,1f)
+            Matrix.translateM(viewMatrix, 0, 0f, 1f, 1f)
         }
 
         internal fun orientModel(orientationMatrix: FloatArray) {

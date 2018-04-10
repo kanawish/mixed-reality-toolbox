@@ -1,4 +1,4 @@
-include ':libVr', ':libCore', ':libFirebase', ':libNearby'
+include ':libVr', ':libCore', ':libFirebase', ':libNearby', ':ddRobotController'
 include ':gliaFeature', ':gliaApp', ':gliaBase', ':gliaInstantApp'
 include ':arDemo', ':ddThing'
 include ':glDemo', ':glEpisodes'

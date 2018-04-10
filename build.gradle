@@ -2,7 +2,7 @@
 
 buildscript {
     ext.kotlin_version = '1.2.31'
-    ext.ktx_version ='0.2'
+    ext.ktx_version = '0.2'
 
     ext.support_version = '27.1.1'
 
@@ -10,10 +10,11 @@ buildscript {
 
     ext {
         versions = [
-                'compileSdk': 27,
-                'buildTools': "27.0.3",
-                'minSdk'    : 19,
-                'targetSdk' : 26
+                'compileSdk'       : 27,
+                'buildTools'       : "27.0.3",
+                'minSdk'           : 19,
+                'minSdkPermissions': 23,
+                'targetSdk'        : 26
         ]
     }
 
@@ -28,6 +29,7 @@ buildscript {
         classpath 'com.google.gms:google-services:3.1.0'
     }
 
+
 }
 
 allprojects {
@@ -40,7 +42,8 @@ allprojects {
 //        mavenLocal()
 //        maven { url "http://google.bintray.com/googlevr" }
 //        maven { url "https://jitpack.io" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } // for JOML https://github.com/JOML-CI/JOML
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        // for JOML https://github.com/JOML-CI/JOML
         jcenter()
         mavenCentral()
         maven { url "http://dl.bintray.com/steveliles/maven" }

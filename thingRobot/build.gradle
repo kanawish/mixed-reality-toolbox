@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion versions.compileSdk
@@ -29,13 +30,12 @@ dependencies {
     implementation project(':libCore')
     implementation project(':libNearby')
 
-    compileOnly 'com.google.android.things:androidthings:0.6.1-devpreview'
+    compileOnly 'com.google.android.things:androidthings:0.7-devpreview'
 
     implementation "com.android.support:support-v4:$support_version"
 
-    implementation 'com.google.android.things.contrib:driver-motorhat:0.1' // motor driver
-    implementation 'com.google.android.things.contrib:driver-mma7660fc:0.2' // accelerometer sensor
-    implementation 'com.google.android.things.contrib:driver-button:0.4'
+    implementation 'com.google.android.things.contrib:driver-motorhat:0.2' // motor driver
+    implementation 'com.google.android.things.contrib:driver-mma7660fc:0.4' // accelerometer sensor
 
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
