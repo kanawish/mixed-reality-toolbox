@@ -2,9 +2,15 @@
 
 buildscript {
     ext.kotlin_version = '1.2.31'
-    ext.ktx_version = '0.2'
+    // TODO: Re enable on next uptick of Things
+//    ext.ktx_version = '0.2'
 
-    ext.support_version = '27.1.1'
+    // TODO: Re enable on next uptick of Things
+//    ext.support_version = '27.1.1'
+
+    // Effectively capped by our use of Android Things
+    // 0.7 db -> Play services 11.8.0 -> Support 25.2.0
+    ext.support_version = '25.2.0'
 
     ext.toothpick_version = '1.1.2'
 
@@ -24,7 +30,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.0-alpha09'
+        classpath 'com.android.tools.build:gradle:3.2.0-alpha10'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:3.1.0'
     }

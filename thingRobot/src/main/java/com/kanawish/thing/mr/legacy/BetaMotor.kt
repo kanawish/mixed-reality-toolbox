@@ -143,7 +143,7 @@ class BetaMotorActivity : Activity() {
 
 }
 
-// NOTE: There's a software reset function in the original drivers too... skipping it for now.
+// NOTE: There's a software stopAll function in the original drivers too... skipping it for now.
 
 fun I2cDevice.init() {
 //    self.i2c = get_i2c_device(address, i2c, i2c_bus)
@@ -155,7 +155,7 @@ fun I2cDevice.init() {
     Thread.sleep(5)
     var mode1 = readRegByte(__MODE1)
     Timber.i("mode1 = ${mode1.toString(16)}")
-    // wake up (reset sleep)
+    // wake up (stopAll sleep)
     mode1 = mode1 and __SLEEP.toByte().inv()
     Timber.i("writeRegByte(${__MODE1.toString(16)}: ${mode1.toString(16)}")
     writeRegByte(__MODE1, mode1)

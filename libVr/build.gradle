@@ -36,10 +36,10 @@ dependencies {
     api "com.android.support:appcompat-v7:$support_version"
     api "com.android.support:design:$support_version"
 
-    api "com.google.vr:sdk-audio:1.101.0"
-    api "com.google.vr:sdk-base:1.101.0"
-    api "com.google.vr:sdk-common:1.101.0"
-    api "com.google.vr:sdk-controller:1.101.0"
+    api "com.google.vr:sdk-audio:1.140.0"
+    api "com.google.vr:sdk-base:1.140.0"
+    api "com.google.vr:sdk-common:1.140.0"
+    api "com.google.vr:sdk-controller:1.140.0"
 
     // DI stack
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md

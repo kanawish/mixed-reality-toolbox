@@ -8,7 +8,6 @@ import toothpick.Toothpick
 
 /**
  */
-
 class ActivityInjectionLifecycle(private val scopeBuilder: (Activity) -> Scope) : ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity?, bundle: Bundle?) {

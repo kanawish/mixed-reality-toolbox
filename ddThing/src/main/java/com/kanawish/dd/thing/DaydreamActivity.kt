@@ -14,10 +14,8 @@ import com.kanawish.gl.Program
 import com.kanawish.gl.Shader
 import com.kanawish.gl.utils.FpsCounter
 import com.kanawish.gl.utils.ModelUtils
-import com.kanawish.librx.firebase.FirebaseAuthManager
 import com.kanawish.librx.firebase.FirebaseDbManager
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.plusAssign
 import timber.log.Timber
 import javax.inject.Inject
 import javax.microedition.khronos.egl.EGLConfig

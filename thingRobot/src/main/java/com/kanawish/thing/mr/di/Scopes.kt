@@ -18,7 +18,6 @@ fun openApplicationScope(app: Application): Scope = Toothpick.openScope(app).app
 }
 
 /**
- *
  */
 fun openActivityScope(activity: Activity): Scope = Toothpick.openScopes(activity.application, activity).apply {
     // https://github.com/stephanenicolas/toothpick/wiki/Scope-Annotations

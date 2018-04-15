@@ -12,8 +12,6 @@ android {
         targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -26,20 +24,15 @@ android {
 }
 
 dependencies {
-    implementation project(':libCore')
     implementation project(':libNearby')
+    implementation project(':libVr')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
     // DI
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
-    // RxJava 2 for your declarative programming needs
-    implementation "io.reactivex.rxjava2:rxjava:2.1.10" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
-    implementation "io.reactivex.rxjava2:rxandroid:2.0.1" // https://github.com/ReactiveX/RxAndroid/blob/2.x/CHANGES.md
-    implementation "io.reactivex.rxjava2:rxkotlin:2.1.0" // https://github.com/ReactiveX/RxKotlin/releases
-    implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
+    implementation "org.joml:joml-android:1.9.3-SNAPSHOT"
 
     testImplementation 'junit:junit:4.12'
 }
