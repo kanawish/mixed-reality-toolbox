@@ -3,6 +3,8 @@ package com.kanawish.dd.robotcontroller
 import android.app.Activity
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import com.google.vr.sdk.base.GvrActivity
+import com.google.vr.sdk.controller.ControllerManager
 import com.kanawish.nearby.NEARBY_PERMISSIONS
 import com.kanawish.nearby.NearbyConnectionManager
 import com.kanawish.nearby.NearbyConnectionManager.ConnectionEvent.ConnectionResult
@@ -13,16 +15,23 @@ import io.reactivex.rxkotlin.plusAssign
 import timber.log.Timber
 import javax.inject.Inject
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.common_ui.*
 
-class MainActivity : Activity() {
+class MainActivity : GvrActivity() {
+
     @Inject lateinit var permissionManager: PermissionManager
     @Inject lateinit var nearbyManager: NearbyConnectionManager
+
+    private lateinit var controllerManager: ControllerManager
 
     private val disposables = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.common_ui)
+
+        gvrView = gvr_view
+        gvrView.setEGLConfigChooser(8, 8, 8, 8, 16, 8)
     }
 
     override fun onStart() {

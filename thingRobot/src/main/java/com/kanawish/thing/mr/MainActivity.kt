@@ -4,7 +4,8 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import com.google.android.things.contrib.driver.motorhat.MotorHat
+import com.google.android.things.contrib.driver.ultrasonicsensor.DistanceListener
+import com.google.android.things.contrib.driver.ultrasonicsensor.UltrasonicSensorDriver
 import com.google.android.things.pio.PeripheralManager
 import com.kanawish.nearby.NearbyConnectionManager
 import com.kanawish.nearby.NearbyConnectionManager.ConnectionEvent.ConnectionResult
@@ -18,7 +19,6 @@ import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -31,6 +31,7 @@ class MainActivity : Activity() {
         PeripheralManager.getInstance()
     }
 
+/*
     val motorHat: MotorHat by lazy {
         try {
             MotorHat(currentDevice().i2cBus())
@@ -38,6 +39,16 @@ class MainActivity : Activity() {
             throw RuntimeException("Failed to create MotorHat", e)
         }
     }
+*/
+
+    val ultrasonicSensor: UltrasonicSensorDriver = try {
+        UltrasonicSensorDriver(
+                "GPIO2_IO01", "GPIO2_IO02",
+                DistanceListener { distanceInCm -> Timber.d("Distance $distanceInCm cm") })
+    } catch (e: IOException) {
+        throw RuntimeException("Failed to create UltrasonicSensorDriver", e)
+    }
+
 
     var disposables: CompositeDisposable = CompositeDisposable()
 
@@ -69,7 +80,7 @@ class MainActivity : Activity() {
         Timber.d("onPictureTaken() called with ${imageBytes.size}")
         BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size).also {
             val outputStream = ByteArrayOutputStream()
-            Bitmap.createScaledBitmap(it,160,120,false)
+            Bitmap.createScaledBitmap(it, 160, 120, false)
                     .compress(Bitmap.CompressFormat.PNG, 100, outputStream)
             val inputStream = ByteArrayInputStream(outputStream.toByteArray())
             nearbyManager.send(inputStream)
@@ -111,6 +122,10 @@ class MainActivity : Activity() {
                 .subscribe { Timber.d("Payload received: $it") }
 
         // Attempt to access the I2C device
+    }
+
+    fun testDrive() {
+/*
         try {
 
             {
@@ -154,6 +169,7 @@ class MainActivity : Activity() {
         } catch (e: IOException) {
             Timber.w("Unable to access I2C device $e")
         }
+*/
     }
 
     override fun onPause() {
@@ -167,8 +183,8 @@ class MainActivity : Activity() {
         super.onDestroy()
 
         cameraHelper.closeCamera()
-
-        safeClose("Unable to close I2C device %s", { motorHat.close() })
+        ultrasonicSensor.close()
+        //    safeClose("Unable to close I2C device %s", { motorHat.close() })
 
     }
 

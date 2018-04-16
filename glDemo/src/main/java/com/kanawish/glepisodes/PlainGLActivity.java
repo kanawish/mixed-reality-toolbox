@@ -32,20 +32,18 @@ import toothpick.Toothpick;
 public class PlainGLActivity extends Activity {
 
     // When instantiated, will publish script changes.
-    @Inject
-    ScriptManager scriptManager;
+    @Inject ScriptManager scriptManager;
 
     // The camera manager will be used to help us move the viewpoint in our scene, etc.
-    @Inject
-    CameraManager cameraManager;
-    @Inject
-    PipelineProgramBus programBus;
-    @Inject
-    GeometryManager geometryManager;
-    @Inject
-    BasicGenerator basicGenerator;
+    @Inject CameraManager cameraManager;
+    @Inject PipelineProgramBus programBus;
+    @Inject GeometryManager geometryManager;
+    @Inject BasicGenerator basicGenerator;
+
     GLSurfaceView debugGLSurfaceView;
+
     private String geoWrapper;
+
     // Subscriptions to the code updaters
     private CompositeDisposable disposables;
     private DebugGLRenderer renderer;
@@ -54,7 +52,6 @@ public class PlainGLActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         debugGLSurfaceView = new GLSurfaceView(this);
         debugGLSurfaceView.setEGLContextClientVersion(3);
         renderer = new DebugGLRenderer(this);
@@ -62,7 +59,6 @@ public class PlainGLActivity extends Activity {
         debugGLSurfaceView.setOnClickListener(v -> programBus.publishGeoData(basicGenerator.generateScene()));
 
         setContentView(debugGLSurfaceView);
-//      ButterKnife.bind(this);
 
         // Load geoWrapper from local storage.
         try {
@@ -130,29 +126,29 @@ public class PlainGLActivity extends Activity {
                                 programBus.fragmentShaderBus().doOnNext(shader -> Timber.d("Fragment Shader code changed.")),
                                 programBus
                                         .geoScriptBus()
-                                        .doOnNext(script->Timber.d("Got geoScript, length: %d", script.length()))
+                                        .doOnNext(script -> Timber.d("Got geoScript, length: %d", script.length()))
                                         .debounce(500, TimeUnit.MILLISECONDS)
-                                        .doOnNext(script->Timber.d("Debounced geoScript, length: %d", script.length()))
+                                        .doOnNext(script -> Timber.d("Debounced geoScript, length: %d", script.length()))
                                         .map(script -> String.format(geoWrapper, script)) // TODO: Came from original rhino setup, might be removeable
-                                        .doOnNext(script->Timber.d("Wrapped geoScript, length: %d", script.length()))
+                                        .doOnNext(script -> Timber.d("Wrapped geoScript, length: %d", script.length()))
                                         .observeOn(Schedulers.computation())
                                         .map(geometryManager::webviewGeometryData)
                                         .doOnError(throwable -> Timber.e(throwable, "GeometryScript failed to execute."))
-                                        .retryWhen(e -> e.flatMap( i -> Observable.timer(5000, TimeUnit.MILLISECONDS)))
+                                        .retryWhen(e -> e.flatMap(i -> Observable.timer(5000, TimeUnit.MILLISECONDS)))
                                         .doOnNext(shader -> Timber.d("Geometry changed.")),
                                 Program::new
                         )
                         .debounce(500, TimeUnit.MILLISECONDS)
                         .doOnNext(shader -> Timber.d("GL Program component changed."))
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe( program -> {
+                        .subscribe(program -> {
                             debugGLSurfaceView.queueEvent(() -> {
                                 // TODO: Under the hood, in the renderer, the threading approach was broken. Go review when time permits / when working on examples.
                                 renderer.updateVertexShader(program.vertexShader);
                                 renderer.updateFragmentShader(program.fragmentShader);
                                 renderer.updateGeometryData(program.geometryData);
                             });
-                        } )
+                        })
         );
 
     }

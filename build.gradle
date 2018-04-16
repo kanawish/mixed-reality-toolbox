@@ -18,7 +18,7 @@ buildscript {
         versions = [
                 'compileSdk'       : 27,
                 'buildTools'       : "27.0.3",
-                'minSdk'           : 19,
+                'minSdk'           : 21,
                 'minSdkPermissions': 23,
                 'targetSdk'        : 26
         ]

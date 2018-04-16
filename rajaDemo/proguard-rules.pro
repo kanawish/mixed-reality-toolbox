@@ -1,6 +1,4 @@
 # Some methods are only called from tests, so make sure the shrinker keeps them.
--keep class com.shopify.android.architecture.** { *; }
-
 -keep class android.support.v4.widget.DrawerLayout { *; }
 -keep class android.support.test.espresso.IdlingResource { *; }
 -keep class com.google.common.base.Preconditions { *; }

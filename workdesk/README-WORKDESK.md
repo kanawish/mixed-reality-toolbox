@@ -2,9 +2,11 @@
 
 The workdesk folder contains all you need to setup the "Publishing" part of the sample code.
 
+**TLDR;** *This works as an add-on to the glDemo app, allowing you to edit scenes on the fly.*
+
 ## The tools
 
-TODO: It would be great to eventually add a step-by-step to using gulp, setting up the node.js environment, etc. 
+TODO: It *would* be **great** to eventually add a step-by-step to using gulp, setting up the node.js environment, etc.
 
 Meanwhile, the main pieces of the puzzle are [gulp.js](http://gulpjs.com/), [node.js](https://nodejs.org/en/), [Browserify](http://browserify.org/) and [Firebase](https://www.firebase.com/).
 
@@ -33,7 +35,7 @@ visit [http://brew.sh/](http://brew.sh/) for full install instructions
 
 - `gulp --tasks` for list of available tasks
 - You'll see Firebase needs to have it's environment variable configured, look for it in `gulpfile.js`
-- run `gulp default` with your device connected, and any changes applied to the files under `./workdesk/src` will be automatically updated.
+- run `gulp default` with your device connected, and any changes applied to the files under `./workdesk/src` will be automatically updated. Then the script will upload the generated `.js` to your device via an ADB or Firebase call, depending on your config.
 
 ## The concept
 

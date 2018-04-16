@@ -4,9 +4,6 @@ import android.annotation.SuppressLint
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.os.Bundle
-import android.view.View
-import android.widget.RelativeLayout
-import android.widget.TextView
 import com.google.vr.sdk.base.*
 import com.google.vr.sdk.controller.Controller
 import com.google.vr.sdk.controller.ControllerManager
@@ -16,6 +13,7 @@ import com.kanawish.gl.utils.FpsCounter
 import com.kanawish.gl.utils.ModelUtils
 import com.kanawish.librx.firebase.FirebaseDbManager
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.android.synthetic.main.common_ui.*
 import timber.log.Timber
 import javax.inject.Inject
 import javax.microedition.khronos.egl.EGLConfig
@@ -52,11 +50,7 @@ class DaydreamActivity() : GvrActivity() {
 
     @Inject lateinit var firebaseDbManager: FirebaseDbManager
 
-    private var fpsTextView: TextView? = null
-    private var msTextView: TextView? = null
-
     private val fpsCounter = FpsCounter(this::refreshFps)
-    private var rootLayout: RelativeLayout? = null
 
     private lateinit var controllerManager: ControllerManager
     private lateinit var controller: Controller
@@ -66,39 +60,22 @@ class DaydreamActivity() : GvrActivity() {
 
         setContentView(R.layout.common_ui)
 
-        val gvrView = findViewById<View>(R.id.gvr_view) as GvrView
+        // Assing gvrView from kotlin's synthetic accessor.
+        gvrView = gvr_view
         gvrView.setEGLConfigChooser(8, 8, 8, 8, 16, 8)
 
         controllerManager = ControllerManager(this, ManagerEventListener())
 
-        val controller = controllerManager.controller
-        // This binds the controller updates to trigger update calls to the renderer, on the GL thread.
-        // NOTE: Is this really needed for our purposes, ultimately? We're really supposed to be polling.
-        // In the sample source code, this was probably really only needed to update UI thread components...
-/*
-        val handler = Handler()
-        controller.bindController({ r->handler.post(r)}, {
-            c->Timber.i("UI Thread controller update: click = ${c.clickButtonState}")
-        })
-*/
-
-        val renderer = Renderer(controller)
-        gvrView.setRenderer(renderer)
+        gvrView.setRenderer(Renderer(controllerManager.controller))
         gvrView.setTransitionViewEnabled(true)
 
-        // TODO: Consider getting rid of this once controller callbacks are working.
-        // Enable Cardboard-trigger feedback with Daydream headsets. This is a simple way of supporting
-        // Daydream controller input for basic interactions using the existing Cardboard trigger API.
-//        gvrView.enableCardboardTriggerEmulation()
-
-        if (gvrView.setAsyncReprojectionEnabled(true)) {
+        if (gvr_view.setAsyncReprojectionEnabled(true)) {
             // Async reprojection decouples the app framerate from the display framerate,
             // allowing immersive interaction even at the throttled clockrates set by
             // sustained performance mode.
             AndroidCompat.setSustainedPerformanceMode(this, true)
         }
 
-        setGvrView(gvrView)
     }
 
     val disposables = CompositeDisposable()
@@ -117,20 +94,6 @@ class DaydreamActivity() : GvrActivity() {
 
         super.onPause()
     }
-
-/*
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            rootLayout!!.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-        }
-    }
-*/
 
     @SuppressLint("DefaultLocale")
     private fun refreshFps(msAverage: Double?) {
