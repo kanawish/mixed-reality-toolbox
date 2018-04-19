@@ -129,7 +129,6 @@ class DaydreamActivity() : GvrActivity() {
         }
 
         private val viewMatrix = FloatArray(16)
-//        private val projectionMatrix = FloatArray(16)
 
         private val uMvMatrix = FloatArray(16)
         private var uMvMatrixHandle: Int = 0
@@ -223,18 +222,6 @@ class DaydreamActivity() : GvrActivity() {
             // We want the viewport to match our screen's geometry.
             GLES20.glViewport(0, 0, width, height)
 
-            val ratio = width.toFloat() / height
-
-            // PROJECTION MATRIX - This call sets up the projectionMatrix.
-/*
-            Matrix.frustumM(
-                    projectionMatrix, 0, // target matrix, offset
-                    -ratio, ratio, // left, right
-                    -1.0f, 1.0f, // bottom, top
-                    1f, 100f         // near, far
-            )
-*/
-
             started = System.currentTimeMillis()
         }
 
@@ -249,24 +236,6 @@ class DaydreamActivity() : GvrActivity() {
             )
 
             headTransform.getHeadView(headViewMatrix, 0)
-
-/*
-            setCubeRotation()
-
-            // Build the camera matrix and apply it to the ModelView.
-            Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f)
-
-            headTransform.getHeadView(headView, 0)
-
-            // Update the 3d audio engine with the most recent head rotation.
-            headTransform.getQuaternion(headRotation, 0)
-            gvrAudioEngine.setHeadRotation(
-                    headRotation[0], headRotation[1], headRotation[2], headRotation[3])
-            // Regular update call to GVR audio engine.
-            gvrAudioEngine.update()
-
-            checkGLError("onReadyToDraw")
-*/
         }
 
         override fun onDrawEye(eye: Eye) {

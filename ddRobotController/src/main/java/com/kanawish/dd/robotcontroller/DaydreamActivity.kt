@@ -1,6 +1,5 @@
 package com.kanawish.dd.robotcontroller
 
-import android.app.Activity
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import com.google.vr.sdk.base.GvrActivity
@@ -14,10 +13,9 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import timber.log.Timber
 import javax.inject.Inject
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.common_ui.*
+import kotlinx.android.synthetic.main.daydream_ui.*
 
-class MainActivity : GvrActivity() {
+class DaydreamActivity : GvrActivity() {
 
     @Inject lateinit var permissionManager: PermissionManager
     @Inject lateinit var nearbyManager: NearbyConnectionManager
@@ -28,7 +26,7 @@ class MainActivity : GvrActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.common_ui)
+        setContentView(R.layout.daydream_ui)
 
         gvrView = gvr_view
         gvrView.setEGLConfigChooser(8, 8, 8, 8, 16, 8)
@@ -63,7 +61,8 @@ class MainActivity : GvrActivity() {
 
         disposables += nearbyManager.outputStreams().subscribe {
             val bitmap = BitmapFactory.decodeByteArray(it.toByteArray(), 0, it.size())
-            image.setImageBitmap(bitmap)
+            // TODO: Add it to the simulation somewhere.
+//            image.setImageBitmap(bitmap)
         }
     }
 

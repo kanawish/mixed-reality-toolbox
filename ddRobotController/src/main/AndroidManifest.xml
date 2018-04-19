@@ -40,12 +40,13 @@
         android:supportsRtl="true"
         android:theme="@style/VrActivityTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".DaydreamActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:enableVrMode="@string/gvr_vr_mode_component"
             android:label="@string/app_name"
             android:resizeableActivity="false"
             android:screenOrientation="landscape">
+
             <!-- The VR icon to be used in Daydream Home comes in two parts:
                  a foreground icon and a background icon.  -->
             <meta-data
@@ -56,11 +57,18 @@
                 android:resource="@drawable/vr_icon_background" />
 
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="com.google.intent.category.DAYDREAM" />
             </intent-filter>
         </activity>
+
+        <!-- For emulator testing / setting up of GL scene, etc. -->
+        <activity android:name=".StandaloneActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>
