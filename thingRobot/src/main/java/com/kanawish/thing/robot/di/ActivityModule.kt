@@ -1,7 +1,7 @@
-package com.kanawish.thing.mr.di
+package com.kanawish.thing.robot.di
 
 import android.app.Activity
-import com.kanawish.thing.mr.telemetry.CameraHelper
+import com.kanawish.thing.robot.telemetry.CameraHelper
 import toothpick.config.Module
 
 class ActivityModule(activity: Activity) : Module() {

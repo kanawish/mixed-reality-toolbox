@@ -1,4 +1,4 @@
-package com.kanawish.thing.mr
+package com.kanawish.thing.robot
 
 import android.os.Build
 

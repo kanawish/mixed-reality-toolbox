@@ -1,4 +1,4 @@
-package com.kanawish.thing.mr.telemetry
+package com.kanawish.thing.robot.telemetry
 
 import android.app.Application
 import android.content.Context

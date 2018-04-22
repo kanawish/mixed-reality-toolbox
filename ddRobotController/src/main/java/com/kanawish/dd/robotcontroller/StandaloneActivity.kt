@@ -10,9 +10,12 @@ import com.kanawish.gl.Program
 import com.kanawish.gl.utils.ModelUtils
 import com.kanawish.kotlin.buildShaders
 import com.kanawish.kotlin.loadAssetString
+import com.kanawish.permission.PermissionManager
+import com.kanawish.socket.NetworkHelper
 import kotlinx.android.synthetic.main.standalone_ui.*
 import timber.log.Timber
 import java.nio.FloatBuffer
+import javax.inject.Inject
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -26,6 +29,9 @@ private const val A_NORMAL = "a_Normal"
 private val LIGHT_POS_IN_WORLD_SPACE = floatArrayOf(0.0f, 1.0f, 1.0f, 1.0f);
 
 class StandaloneActivity : Activity() {
+
+    @Inject lateinit var permissionManager: PermissionManager
+
 
     private lateinit var renderer: Renderer
 
@@ -44,6 +50,9 @@ class StandaloneActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        val server = NetworkHelper.Server()
+        server.test()
+
         glSurfaceView.onResume()
     }
 
@@ -67,15 +76,15 @@ class StandaloneActivity : Activity() {
     /**
      * Generic name until I come up with better one.
      */
-    class ModelContext(vertSource: String, fragSource: String) {
-        private val programHandle: Int
+    class ProgramContext(vertSource: String, fragSource: String) {
+        val programHandle: Int
 
-        private val uMvMatrixHandle: Int
-        private val uMvpMatrixHandle: Int
-        private val uLightPositionHandle: Int
+        val uMvMatrixHandle: Int
+        val uMvpMatrixHandle: Int
+        val uLightPositionHandle: Int
 
-        private val aPositionHandle: Int
-        private val aNormalHandle: Int
+        val aPositionHandle: Int
+        val aNormalHandle: Int
 
         init {
             // OPENGL PROGRAM INIT
@@ -122,7 +131,7 @@ class StandaloneActivity : Activity() {
 
         var orientationMatrix = FloatArray(16).apply {
             Matrix.setIdentityM(this, 0)
-            Matrix.rotateM(this,0,10f,1f,0f, 0f)
+            Matrix.rotateM(this, 0, 10f, 1f, 0f, 0f)
         }
 
         override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
@@ -141,6 +150,9 @@ class StandaloneActivity : Activity() {
 
             // OPENGL PROGRAM INIT
 
+            // Continue here.
+            val programContext = ProgramContext(vertSource, fragSource)
+
             // Load episode 02 shaders from "assets/", compile them, returns shader handlers.
             // Link the shaders to form a program, binding attributes
             programHandle = Program.linkProgram(buildShaders(vertSource, fragSource), A_POSITION, A_NORMAL)
@@ -157,7 +169,7 @@ class StandaloneActivity : Activity() {
 
             // MODEL INIT - Set up model(s)
             // Our cube model.
-            cube = ModelUtils.buildCube(1f)
+            cube = ModelUtils.buildCube(.1f)
 
             // LIGHTING INIT
             uLightPosition = FloatArray(4)
@@ -210,33 +222,47 @@ class StandaloneActivity : Activity() {
             aPositionHandle.assignAttributes(ModelUtils.VALUES_PER_COORD, cube!!.coordinates)
             aNormalHandle.assignAttributes(ModelUtils.VALUES_PER_NORMAL, cube!!.normals)
 
-
             // MODEL - Prepares the Model transformation Matrix, for the given elapsed time.
-//            animateModel(System.currentTimeMillis() - started)
-
-
             // MODEL-VIEW-PROJECTION
             // Multiply view by model matrix. uMvMatrix holds the result, then assign matrix to uniform handle.
             uMvMatrixHandle.assign4fv(uMvMatrix.assignMultMM(viewMatrix, modelMatrix.orientModel(orientationMatrix)))
-            // lots more cut out here, and the below:
-//            GLES30.glUniformMatrix4fv(uMvMatrixHandle, 1, false, uMvMatrix, 0)
 
             // Multiply model-view matrix by projection matrix, uMvpMatrix holds the result.
             // Assign matrix to uniform handle.
-            uMvpMatrixHandle.assign4fv(uMvpMatrix.assignMultMM(projectionMatrix,uMvMatrix))
-            // vs
-//            Matrix.multiplyMM(uMvpMatrix, 0, projectionMatrix, 0, uMvMatrix, 0)
-//            GLES30.glUniformMatrix4fv(uMvpMatrixHandle, 1, false, uMvpMatrix, 0)
+            uMvpMatrixHandle.assign4fv(uMvpMatrix.assignMultMM(projectionMatrix, uMvMatrix))
 
             // Set the position of the light
             // Assign light position to uniform handle.
             uLightPositionHandle.assign3f(uLightPosition.assignMultMV(viewMatrix, LIGHT_POS_IN_WORLD_SPACE))
-            // vs
-            // Matrix.multiplyMV(uLightPosition, 0, viewMatrix, 0, LIGHT_POS_IN_WORLD_SPACE, 0)
-//            GLES30.glUniform3f(uLightPositionHandle, uLightPosition[0], uLightPosition[1], uLightPosition[2])
 
             // Draw call
             GLES30.glDrawElements(GLES30.GL_TRIANGLES, cube!!.count, GLES30.GL_UNSIGNED_INT, cube!!.indices)
+        }
+
+        fun draw(context: ProgramContext, model: ModelUtils.Ep02Model) {
+            // MODEL - Pass the vertex information (coordinates, normals) to the Vertex Shader
+            context.aPositionHandle.assignAttributes(ModelUtils.VALUES_PER_COORD, model.coordinates)
+            context.aNormalHandle.assignAttributes(ModelUtils.VALUES_PER_NORMAL, model.normals)
+
+            // MODEL - Prepares the Model transformation Matrix, for the given elapsed time.
+            // MODEL-VIEW-PROJECTION
+            // Multiply view by model matrix. uMvMatrix holds the result, then assign matrix to uniform handle.
+            context.uMvMatrixHandle.assign4fv(uMvMatrix.assignMultMM(viewMatrix, modelMatrix.orientModel(orientationMatrix)))
+
+            // Multiply model-view matrix by projection matrix, uMvpMatrix holds the result.
+            // Assign matrix to uniform handle.
+            context.uMvpMatrixHandle.assign4fv(uMvpMatrix.assignMultMM(projectionMatrix, uMvMatrix))
+
+            // Set the position of the light
+            // Assign light position to uniform handle.
+            context.uLightPositionHandle.assign3f(uLightPosition.assignMultMV(viewMatrix, LIGHT_POS_IN_WORLD_SPACE))
+
+            GLES30.glDrawElements(GLES30.GL_TRIANGLES, model.count, GLES30.GL_UNSIGNED_INT, model.indices)
+        }
+
+        fun Int.assignAttributes(size: Int, buffer: FloatBuffer) {
+            GLES30.glVertexAttribPointer(this, size, GLES30.GL_FLOAT, false, 0, buffer)
+            GLES30.glEnableVertexAttribArray(this)
         }
 
         fun FloatArray.assignMultMV(lhsMat: FloatArray, rhsVec: FloatArray): FloatArray {
@@ -249,19 +275,9 @@ class StandaloneActivity : Activity() {
             return this
         }
 
-        fun Int.assignAttributes(size: Int, buffer: FloatBuffer) {
-            GLES30.glVertexAttribPointer(this, size, GLES30.GL_FLOAT, false, 0, buffer)
-            GLES30.glEnableVertexAttribArray(this)
-        }
-
         fun Int.assign4fv(matrix: FloatArray) = GLES30.glUniformMatrix4fv(this, 1, false, matrix, 0)
 
         fun Int.assign3f(vector: FloatArray) = GLES30.glUniform3f(this, vector[0], vector[1], vector[2])
-
-        fun draw(context:ModelContext, model: ModelUtils.Ep02Model) {
-            TODO("implement")
-            GLES30.glDrawElements(GLES30.GL_TRIANGLES, model.count, GLES30.GL_UNSIGNED_INT, model.indices)
-        }
 
         internal fun animateModel(elapsed: Long) {
             val msCycle = 14000

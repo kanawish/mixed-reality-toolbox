@@ -1,9 +1,9 @@
-package com.kanawish.thing.mr
+package com.kanawish.thing.robot
 
 import android.app.Application
 import com.kanawish.di.ActivityInjectionLifecycle
-import com.kanawish.thing.mr.di.openActivityScope
-import com.kanawish.thing.mr.di.openApplicationScope
+import com.kanawish.thing.robot.di.openActivityScope
+import com.kanawish.thing.robot.di.openApplicationScope
 import timber.log.Timber
 import toothpick.Toothpick
 

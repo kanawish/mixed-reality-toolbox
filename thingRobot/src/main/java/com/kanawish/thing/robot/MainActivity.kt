@@ -1,19 +1,22 @@
-package com.kanawish.thing.mr
+package com.kanawish.thing.robot
 
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import com.google.android.things.contrib.driver.motorhat.MotorHat
 import com.google.android.things.contrib.driver.ultrasonicsensor.DistanceListener
 import com.google.android.things.contrib.driver.ultrasonicsensor.UltrasonicSensorDriver
 import com.google.android.things.pio.PeripheralManager
 import com.kanawish.nearby.NearbyConnectionManager
 import com.kanawish.nearby.NearbyConnectionManager.ConnectionEvent.ConnectionResult
 import com.kanawish.nearby.NearbyConnectionManager.ConnectionEvent.Disconnect
-import com.kanawish.thing.mr.telemetry.CameraHelper
+import com.kanawish.socket.NetworkHelper
+import com.kanawish.thing.robot.telemetry.CameraHelper
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.plusAssign
 import timber.log.Timber
 import java.io.ByteArrayInputStream
@@ -26,12 +29,12 @@ class MainActivity : Activity() {
 
     @Inject lateinit var nearbyManager: NearbyConnectionManager
     @Inject lateinit var cameraHelper: CameraHelper
+    @Inject lateinit var networkHelper: NetworkHelper
 
     val manager by lazy {
         PeripheralManager.getInstance()
     }
 
-/*
     val motorHat: MotorHat by lazy {
         try {
             MotorHat(currentDevice().i2cBus())
@@ -39,7 +42,6 @@ class MainActivity : Activity() {
             throw RuntimeException("Failed to create MotorHat", e)
         }
     }
-*/
 
     val ultrasonicSensor: UltrasonicSensorDriver = try {
         UltrasonicSensorDriver(
@@ -92,11 +94,15 @@ class MainActivity : Activity() {
         Timber.w("onResume()")
         super.onResume()
 
+        val testDisposable = Observable.intervalRange(1,5, 1, 1, TimeUnit.SECONDS).subscribe {
+            NetworkHelper.Client().sendTest("Bob $it")
+        }
+
         // Wait a second before advertising.
         disposables += Observable.timer(3, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-                    nearbyManager.autoAdvertise()
+                    //                    nearbyManager.autoAdvertise()
                 }
 
         // On successful connection, waits 1 second, takes a picture.
@@ -122,55 +128,83 @@ class MainActivity : Activity() {
                 .subscribe { Timber.d("Payload received: $it") }
 
         // Attempt to access the I2C device
+        testDrive()
     }
 
-    fun testDrive() {
-/*
-        try {
+    fun testDrive() = try {
 
-            {
-                motorHat.setMotorSpeed(0, 0)
-                motorHat.setMotorSpeed(1, 0)
-                motorHat.setMotorSpeed(2, 0)
-                motorHat.setMotorSpeed(3, 0)
-            }()
+        // CCW is forward, CW is backward.
+        fun Boolean.direction(): Int = if (this) MotorHat.MOTOR_STATE_CCW else MotorHat.MOTOR_STATE_CW
 
-            disposables += Observable
-                    .fromArray(
-                            { i: Int ->
-                                motorHat.setMotorState(i, MotorHat.MOTOR_STATE_CW)
-                                motorHat.setMotorSpeed(i, 32)
-                            },
-                            { motorHat.setMotorState(it, MotorHat.MOTOR_STATE_CCW) },
-                            {
-                                motorHat.setMotorState(it, MotorHat.MOTOR_STATE_CW)
-                                motorHat.setMotorSpeed(it, 128)
-                            },
-                            { motorHat.setMotorState(it, MotorHat.MOTOR_STATE_CCW) },
-                            {
-                                motorHat.setMotorState(it, MotorHat.MOTOR_STATE_CW)
-                                motorHat.setMotorSpeed(it, 255)
-                            },
-                            { motorHat.setMotorState(it, MotorHat.MOTOR_STATE_CCW) },
-                            { motorHat.setMotorState(it, MotorHat.MOTOR_STATE_RELEASE) }
-                    )
-                    .concatMap { command ->
-                        Observable.timer(500, TimeUnit.MILLISECONDS).map { command }
-                    }
-                    .doOnNext { _ -> Timber.i("execute command()") }
-                    .subscribe { command ->
-                        // Command parameter to address a specific wheel motor.
-                        command(0)
-                        command(1)
-                        command(2)
-                        command(3)
-                    }
-
-        } catch (e: IOException) {
-            Timber.w("Unable to access I2C device $e")
+        fun releaseAll() {
+            for (i in 0..3) motorHat.setMotorState(i, MotorHat.MOTOR_STATE_RELEASE)
         }
+
+        fun cmd(motorId: Int, direction: Boolean, speed: Int) {
+            motorHat.setMotorState(motorId, direction.direction())
+            motorHat.setMotorSpeed(motorId, speed)
+        }
+
+        {
+            motorHat.setMotorSpeed(0, 0)
+            motorHat.setMotorSpeed(1, 0)
+            motorHat.setMotorSpeed(2, 0)
+            motorHat.setMotorSpeed(3, 0)
+        }()
+
+        fun move(forward:Boolean, speed:Int = 128) {
+            for(i in 0..3) cmd(i, forward, speed)
+        }
+
+        fun rot(forward: Boolean, speed:Int = 128) {
+            arrayOf(0, 1).forEach {
+                cmd(it, forward, speed)
+            }
+            arrayOf(2, 3).forEach {
+                cmd(it, !forward, speed)
+            }
+        }
+
+        disposables += Observable
+                .fromArray(
+//                            { for(i in 0..3) cmd(i, MotorHat.MOTOR_STATE_CW) },
+//                            { for(i in 0..3) motorHat.setMotorState(i, MotorHat.MOTOR_STATE_CCW) },
+//                        600 to { rot(true,250)},
+                        2500 to { move(false,250)},
+//                        500 to { move(false,200)},
+
+/*
+                        500 to { releaseAll() },
+                        6000 to { rot(false) },
+                        500 to { releaseAll() },
+                        3000 to { rot(true) },
+                        500 to { releaseAll() }
 */
+                        /*,
+                        1000 to {
+                            arrayOf(0, 1).forEach {
+                                cmd(it, MotorHat.MOTOR_STATE_CCW,160)
+                            }
+                            arrayOf(2, 3).forEach {
+                                cmd(it, MotorHat.MOTOR_STATE_CCW,160)
+                            }
+                        },
+                        500 to { for(i in 0..3) motorHat.setMotorState(i, MotorHat.MOTOR_STATE_RELEASE) }*/
+                        500 to { releaseAll() }
+        )
+                .concatMap { (time, command) ->
+                    // Emits a NO-OP, then after `time` ms, emits actual command.
+                    Observable.timer(time.toLong(), TimeUnit.MILLISECONDS).map { {} }.startWith(command)
+                }
+                .doOnNext { _ -> Timber.i("execute command()") }
+                .subscribe {
+                    it()
+                }
+
+    } catch (e: IOException) {
+        Timber.w("Unable to access I2C device $e")
     }
+
 
     override fun onPause() {
         Timber.w("onPause()")

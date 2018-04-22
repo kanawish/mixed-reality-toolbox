@@ -1,4 +1,4 @@
-package com.kanawish.thing.mr.legacy
+package com.kanawish.thing.robot.legacy
 
 import android.app.Activity
 import android.os.Bundle

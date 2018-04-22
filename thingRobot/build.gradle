@@ -8,7 +8,7 @@ android {
     buildToolsVersion versions.buildTools
 
     defaultConfig {
-        applicationId "com.kanawish.thing.mr"
+        applicationId "com.kanawish.thing.robot"
         minSdkVersion versions.targetSdk
         targetSdkVersion versions.targetSdk
         versionCode 1
@@ -34,7 +34,7 @@ android {
 
 dependencies {
     implementation project(':libCore')
-    implementation project(':libNearby')
+    implementation project(':libNetwork')
 
     compileOnly 'com.google.android.things:androidthings:0.7-devpreview'
 

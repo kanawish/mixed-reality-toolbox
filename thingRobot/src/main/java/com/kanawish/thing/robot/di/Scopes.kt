@@ -1,4 +1,4 @@
-package com.kanawish.thing.mr.di
+package com.kanawish.thing.robot.di
 
 import android.app.Activity
 import android.app.Application
