@@ -1,5 +1,10 @@
 apply plugin: 'com.android.instantapp'
 
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+}
+
 dependencies {
     implementation project(':gliaFeature')
     implementation project(':gliaBase')

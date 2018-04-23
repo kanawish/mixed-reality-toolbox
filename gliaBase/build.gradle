@@ -2,9 +2,10 @@ apply plugin: 'com.android.feature'
 
 android {
     compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
     baseFeature true
     defaultConfig {
-        minSdkVersion versions.minSdk
+        minSdkVersion versions.gliaMinSdk
         targetSdkVersion versions.targetSdk
         versionCode 6
         versionName "1.0"
@@ -15,10 +16,22 @@ dependencies {
     application project(':gliaApp')
     feature project(':gliaFeature')
 
-    // Google...
-    api "com.android.support:support-compat:$support_version"
+    // Libraries
+    api project(':libCore')
 
-    api (name: 'arcore_client', ext: 'aar')
+    // Language level
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-//    api project(':libCore')
+    // Google dependencies
+    api 'com.android.support:appcompat-v7:27.1.1'
+    api 'com.android.support.constraint:constraint-layout:1.1.0'
+    api 'com.android.support:design:27.1.1'
+    api "com.android.support:support-compat:27.1.1"
+
+    // External libs
+    api 'com.dmitrymalkovich.android:material-design-dimens:1.4' // https://github.com/DmitryMalkovich/material-design-dimens
+    api "com.github.stephanenicolas.toothpick:toothpick-runtime:$toothpick_version"
+    api "com.github.stephanenicolas.toothpick:smoothie:$toothpick_version"
+    api "com.jakewharton.timber:timber:4.6.0" // https://github.com/JakeWharton/timber/blob/master/CHANGELOG.md
+
 }

@@ -10,8 +10,11 @@ import com.kanawish.gl.Program
 import com.kanawish.gl.utils.ModelUtils
 import com.kanawish.kotlin.buildShaders
 import com.kanawish.kotlin.loadAssetString
-import com.kanawish.permission.PermissionManager
-import com.kanawish.socket.NetworkHelper
+import com.kanawish.socket.NetworkServer
+import com.kanawish.socket.toBitmap
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.standalone_ui.*
 import timber.log.Timber
 import java.nio.FloatBuffer
@@ -30,10 +33,11 @@ private val LIGHT_POS_IN_WORLD_SPACE = floatArrayOf(0.0f, 1.0f, 1.0f, 1.0f);
 
 class StandaloneActivity : Activity() {
 
-    @Inject lateinit var permissionManager: PermissionManager
-
+    @Inject lateinit var server: NetworkServer
 
     private lateinit var renderer: Renderer
+
+    private val disposables = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,19 +49,26 @@ class StandaloneActivity : Activity() {
         renderer = Renderer(
                 loadAssetString("shaders/gles2.ep02.vertshader"),
                 loadAssetString("shaders/gles2.ep02.fragshader"))
+
         glSurfaceView.setRenderer(renderer)
     }
 
     override fun onResume() {
         super.onResume()
-        val server = NetworkHelper.Server()
-        server.test()
+
+        disposables += server
+                .receiveTelemetry()
+                .doOnNext { Timber.d("Telemetry(${it.distance}cm, ${it.image.size} bytes)") }
+                .map { it.distance to it.image.toBitmap() }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ (_, bitmap) -> imageView.setImageBitmap(bitmap) })
 
         glSurfaceView.onResume()
     }
 
     override fun onPause() {
         glSurfaceView.onPause() // TBH, not sure it's important to put this before onPause(). TODO: Find out, ask someone who would known.
+        disposables.clear()
         super.onPause()
     }
 
@@ -222,7 +233,7 @@ class StandaloneActivity : Activity() {
             aPositionHandle.assignAttributes(ModelUtils.VALUES_PER_COORD, cube!!.coordinates)
             aNormalHandle.assignAttributes(ModelUtils.VALUES_PER_NORMAL, cube!!.normals)
 
-            // MODEL - Prepares the Model transformation Matrix, for the given elapsed time.
+            // MODEL - Prepares the Model transformation Matrix, for the given elapsed duration.
             // MODEL-VIEW-PROJECTION
             // Multiply view by model matrix. uMvMatrix holds the result, then assign matrix to uniform handle.
             uMvMatrixHandle.assign4fv(uMvMatrix.assignMultMM(viewMatrix, modelMatrix.orientModel(orientationMatrix)))
@@ -244,7 +255,7 @@ class StandaloneActivity : Activity() {
             context.aPositionHandle.assignAttributes(ModelUtils.VALUES_PER_COORD, model.coordinates)
             context.aNormalHandle.assignAttributes(ModelUtils.VALUES_PER_NORMAL, model.normals)
 
-            // MODEL - Prepares the Model transformation Matrix, for the given elapsed time.
+            // MODEL - Prepares the Model transformation Matrix, for the given elapsed duration.
             // MODEL-VIEW-PROJECTION
             // Multiply view by model matrix. uMvMatrix holds the result, then assign matrix to uniform handle.
             context.uMvMatrixHandle.assign4fv(uMvMatrix.assignMultMM(viewMatrix, modelMatrix.orientModel(orientationMatrix)))

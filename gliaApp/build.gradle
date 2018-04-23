@@ -1,16 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion versions.compileSdk
-    android {
-        compileOptions {
-            sourceCompatibility 1.8
-            targetCompatibility 1.8
-        }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
     defaultConfig {
         applicationId "com.kanawish.glia"
-        minSdkVersion versions.minSdk
+        minSdkVersion versions.gliaMinSdk
         targetSdkVersion versions.targetSdk
         versionCode 11
         versionName "1.0"
@@ -18,12 +17,12 @@ android {
     buildTypes {
         debug {
             // Uses new built-in shrinker http://tools.android.com/tech-docs/new-build-system/built-in-shrinker
-            minifyEnabled false
+            minifyEnabled true
             useProguard false
         }
         release {
             // Uses new built-in shrinker http://tools.android.com/tech-docs/new-build-system/built-in-shrinker
-            minifyEnabled false
+            minifyEnabled true
             useProguard false
         }
     }

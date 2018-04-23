@@ -1,5 +1,6 @@
-package com.kanawish.thing.robot.telemetry
+package com.kanawish.camera
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.graphics.ImageFormat
@@ -11,8 +12,14 @@ import android.os.HandlerThread
 import com.kanawish.kotlin.safeLet
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class CameraHelper @Inject constructor(
+/**
+ * @startuml
+ * class CameraHelper
+ * @enduml
+ */
+@Singleton class CameraHelper @Inject constructor(
         private val app: Application,
         private val manager: CameraManager
 ) {
@@ -42,6 +49,7 @@ class CameraHelper @Inject constructor(
         Timber.d("Default camera $camId)}")
     }
 
+    @SuppressLint("MissingPermission") // Permission check happens in user code.
     fun openCamera(receiver: (ByteArray) -> Unit) {
         // NOTE: I'm doing something wrong/naive with width-height, it's not working correctly.
         // Init image processor
@@ -98,7 +106,7 @@ class CameraHelper @Inject constructor(
 
 
     fun takePicture() {
-        Timber.d("takePicture()")
+//        Timber.d("takePicture()")
         if (cameraDevice == null) {
             Timber.e("Cannot capture image. Camera not initialized.")
             return
@@ -133,12 +141,12 @@ class CameraHelper @Inject constructor(
                 val result = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE).let { builder ->
                     builder.addTarget(reader.surface)
                     builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
-                    Timber.d("Session initialized.")
+//                    Timber.d("Session initialized.")
                     captureSession?.capture(builder.build(), captureCallback, null)
                 }
-                Timber.d("capture() returned $result")
+//                Timber.d("capture() returned $result")
             }
-        } catch (e: CameraAccessException) {
+        } catch (e: Exception) {
             Timber.e(e, "Camera capture exception.")
         }
     }
@@ -149,7 +157,7 @@ class CameraHelper @Inject constructor(
                 request: CaptureRequest,
                 partialResult: CaptureResult
         ) {
-            Timber.d("Partial result")
+//            Timber.d("Partial result")
         }
 
         override fun onCaptureCompleted(
@@ -157,11 +165,11 @@ class CameraHelper @Inject constructor(
                 request: CaptureRequest,
                 result: TotalCaptureResult
         ) {
-            Timber.d("CaptureSession closed")
+//            Timber.d("CaptureSession closed")
             session?.let {
                 it.close()
                 captureSession = null
-                Timber.d("CaptureSession closed")
+//                Timber.d("CaptureSession closed")
             }
         }
     }

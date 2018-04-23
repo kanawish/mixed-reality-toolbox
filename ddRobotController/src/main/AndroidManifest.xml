@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.kanawish.dd.robotcontroller">
 
     <!-- Tell the system this app requires OpenGL ES 2.0. -->
     <!--<uses-feature android:glEsVersion="0x00020000" android:required="true" />-->
     <!-- Tell the system this app requires OpenGL ES 3.0. -->
-    <uses-feature android:glEsVersion="0x00030000" android:required="true" />
+    <uses-feature
+        android:glEsVersion="0x00030000"
+        android:required="true" />
     <!-- Tell the system this app requires OpenGL ES 3.1. -->
     <!--<uses-feature android:glEsVersion="0x00030001" android:required="true" />-->
 
@@ -15,14 +18,22 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Make accelerometer and gyroscope hard requirements for good head tracking. -->
-    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
-    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="true" />
+    <uses-feature
+        android:name="android.hardware.sensor.accelerometer"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.sensor.gyroscope"
+        android:required="true" />
 
     <!-- Indicates use of Android's VR-mode, available only on Android N+. -->
-    <uses-feature android:name="android.software.vr.mode" android:required="false" />
+    <uses-feature
+        android:name="android.software.vr.mode"
+        android:required="false" />
 
     <!-- Indicates use of VR features that are available only on Daydream-ready devices. -->
-    <uses-feature android:name="android.hardware.vr.high_performance" android:required="false" />
+    <uses-feature
+        android:name="android.hardware.vr.high_performance"
+        android:required="false" />
 
     <!-- Required for Nearby Connections -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -31,6 +42,8 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
+    <!-- Others -->
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
 
 
@@ -41,7 +54,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/VrActivityTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".DaydreamActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -65,19 +79,38 @@
         </activity>
 
         <!-- For emulator testing / setting up of GL scene, etc. -->
-        <activity android:name=".StandaloneActivity" >
+        <activity android:name=".StandaloneActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ClientTestActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".ServerTestActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".LoopbackTestActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ControllerActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ClientTestActivity" >
-        </activity>
-
-        <activity android:name=".ServerTestActivity" >
-        </activity>
-
     </application>
 
 </manifest>

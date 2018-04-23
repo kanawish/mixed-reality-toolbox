@@ -1,20 +1,23 @@
 apply plugin: 'com.android.feature'
+
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
     defaultConfig {
-        minSdkVersion versions.minSdk
+        minSdkVersion versions.gliaMinSdk
         targetSdkVersion versions.targetSdk
         versionCode 6
         versionName "1.0"
     }
+
     buildTypes {
         debug {
             // Uses new built-in shrinker http://tools.android.com/tech-docs/new-build-system/built-in-shrinker
@@ -30,15 +33,14 @@ android {
 }
 
 dependencies {
+    // Libraries
     implementation project(':gliaBase')
-    implementation project(':libCore')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    // External dependencies
+    api "com.google.ar.sceneform.ux:sceneform-ux:1.0.0"
 
+    // Annotation processing
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-
-    // UI
-    implementation 'com.dmitrymalkovich.android:material-design-dimens:1.4' // https://github.com/DmitryMalkovich/material-design-dimens
 
     // Testing
     testImplementation 'junit:junit:4.12'

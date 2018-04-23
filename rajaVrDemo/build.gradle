@@ -41,7 +41,7 @@ dependencies {
 
     // APT/Plugin based boilerplate removal
     implementation "com.jakewharton:butterknife:8.6.0" // https://github.com/JakeWharton/butterknife/blob/master/CHANGELOG.md
-    annotationProcessor "com.jakewharton:butterknife-compiler:8.6.0"
+    kapt "com.jakewharton:butterknife-compiler:8.6.0"
 
     // SNAPSHOT versions of Rajawali can be used in some cases
     // see https://github.com/Rajawali/Rajawali

@@ -16,7 +16,7 @@ import timber.log.Timber;
 /**
  * This is the driver class for Ultrasonic distance measurement sensor - HC-SR04.
  * This class uses different threads to send pulses to trigger pin and get the echo pulses. This threads
- * are other than main thread. This is to increase the time accuracy for echo pulses by doing
+ * are other than main thread. This is to increase the duration accuracy for echo pulses by doing
  * simultaneous tasks.
  *
  * @author Keval {https://github.com/kevalpatel2106}
@@ -101,7 +101,7 @@ public final class UltrasonicSensorDriver implements AutoCloseable {
             throw new IllegalArgumentException("DistanceListener cannot be null.");
 
         //Start sending pulses
-        //We are using different thread for sending pulses to increase time accuracy.
+        //We are using different thread for sending pulses to increase duration accuracy.
         HandlerThread triggerHandlerThread = new HandlerThread("TriggerHandlerThread");
         triggerHandlerThread.start();
         mTriggerHandler = new Handler(triggerHandlerThread.getLooper());

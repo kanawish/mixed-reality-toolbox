@@ -11,8 +11,6 @@ import toothpick.Toothpick
  */
 class MainApp : Application() {
 
-//    @Inject lateinit var grovePiManager:GrovePiManager
-
     override fun onCreate() {
         super.onCreate()
 

@@ -1,14 +1,17 @@
 package com.kanawish.ardemo
 
+import android.app.Activity
 import android.app.Application
-import com.kanawish.ardemo.di.openActivityScope
-import com.kanawish.ardemo.di.openApplicationScope
+import com.kanawish.ardemo.di.ActivityModule
+import com.kanawish.ardemo.di.AppModule
 import com.kanawish.di.ActivityInjectionLifecycle
+import com.kanawish.di.ActivitySingleton
 import timber.log.Timber
+import toothpick.Scope
 import toothpick.Toothpick
+import toothpick.smoothie.module.SmoothieActivityModule
+import toothpick.smoothie.module.SmoothieApplicationModule
 
-/**
- */
 class ArDemoApp : Application() {
 
     override fun onCreate() {
@@ -16,7 +19,7 @@ class ArDemoApp : Application() {
 
         if (com.kanawish.ardemo.BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
-        } // NOTE: Only logging when running the DEBUG flavor
+        }
 
         Timber.i("%s %d %s", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.APPLICATION_ID)
 
@@ -24,4 +27,21 @@ class ArDemoApp : Application() {
         Toothpick.inject(this, openApplicationScope(this))
         registerActivityLifecycleCallbacks(ActivityInjectionLifecycle(::openActivityScope))
     }
+
+    fun openApplicationScope(app: Application): Scope = Toothpick.openScope(app).apply {
+        installModules(
+                SmoothieApplicationModule(app),
+                AppModule)
+    }
+
+    fun openActivityScope(activity: Activity): Scope = Toothpick.openScopes(activity.application, activity).apply {
+        bindScopeAnnotation(ActivitySingleton::class.java)
+
+        installModules(
+                SmoothieActivityModule(activity),
+                ActivityModule)
+    }
+
 }
+
+
