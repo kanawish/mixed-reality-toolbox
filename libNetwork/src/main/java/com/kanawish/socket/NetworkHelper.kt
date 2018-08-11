@@ -18,8 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
-const val NEXUS_ADDRESS = "192.168.43.1"
-const val PIXEL_ADDRESS = "192.168.43.60"
+const val HOST_PHONE_ADDRESS = "192.168.43.1"
 const val ROBOT_ADDRESS = "192.168.43.220"
 const val LOCAL_ADDRESS = "192.168.232.2"
 

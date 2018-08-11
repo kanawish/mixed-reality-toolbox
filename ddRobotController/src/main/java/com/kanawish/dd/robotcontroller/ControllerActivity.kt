@@ -41,7 +41,6 @@ class ControllerActivity : Activity() {
         // TODO: Change this to auto connect, emit state.
         connectionManager.selectedDevice()?.let { connectionManager.createBond(it) }
                 ?: connectionManager.startDiscovery()
-
     }
 
     override fun onResume() {

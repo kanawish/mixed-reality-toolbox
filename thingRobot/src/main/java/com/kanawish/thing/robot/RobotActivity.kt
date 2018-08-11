@@ -13,7 +13,7 @@ import com.jakewharton.rxrelay2.PublishRelay
 import com.kanawish.camera.CameraHelper
 import com.kanawish.robot.Command
 import com.kanawish.robot.Telemetry
-import com.kanawish.socket.NEXUS_ADDRESS
+import com.kanawish.socket.HOST_PHONE_ADDRESS
 import com.kanawish.socket.NetworkClient
 import com.kanawish.socket.NetworkServer
 import io.reactivex.Observable
@@ -132,7 +132,7 @@ class RobotActivity : Activity() {
                         { telemetry ->
                             Timber.d("Sending telemetry: ${telemetry.distance} cm / ${telemetry.image.size} bytes")
                             // Every call opens a socket with server, sends the data, and for now is non-blocking.
-                            networkClient.sendTelemetry(NEXUS_ADDRESS, telemetry)
+                            networkClient.sendTelemetry(HOST_PHONE_ADDRESS, telemetry)
                         },
                         { throwable -> Timber.e(throwable) }
                 )

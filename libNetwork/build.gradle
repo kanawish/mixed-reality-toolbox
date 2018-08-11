@@ -19,7 +19,7 @@ android {
 dependencies {
     api project(':libCore')
 
-    api 'com.google.android.gms:play-services-nearby:11.8.0'
+//    api 'com.google.android.gms:play-services-nearby:11.8.0'
 
     // RxJava 2 for your declarative programming needs
     api "io.reactivex.rxjava2:rxjava:2.1.12" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
@@ -28,7 +28,7 @@ dependencies {
     api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
 
     // R&D
-    api "com.github.davidmoten:rxjava2-extras:0.1.21" // https://github.com/davidmoten/rxjava2-extras/releases
+//    api "com.github.davidmoten:rxjava2-extras:0.1.21" // https://github.com/davidmoten/rxjava2-extras/releases
 
     implementation "com.squareup.okio:okio:1.14.0"
 

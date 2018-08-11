@@ -2,24 +2,19 @@
 
 buildscript {
     ext.kotlin_version = '1.2.50'
-    // TODO: Re enable on next uptick of Things
-//    ext.ktx_version = '0.2'
-
-    // TODO: Re enable on next uptick of Things
-//    ext.support_version = '27.1.1'
 
     // Effectively capped by our use of Android Things
     // 0.7 db -> Play services 11.8.0 -> Support 25.2.0
     ext.support_version = '25.2.0'
-
     ext.toothpick_version = '1.1.2'
 
     ext {
         versions = [
                 'compileSdk'       : 27,
                 'buildTools'       : "27.0.3",
-                'minSdk'           : 21,
+                'minSdk'           : 23,
                 'minSdkPermissions': 23,
+                'minSdkArCore'     : 24,
                 'gliaMinSdk'       : 24,
                 'targetSdk'        : 26
         ]
@@ -44,11 +39,7 @@ allprojects {
         google()
         jcenter()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        // for JOML https://github.com/JOML-CI/JOML
-        maven { url "http://dl.bintray.com/steveliles/maven" }
-//        mavenLocal()
-//        maven { url "http://google.bintray.com/googlevr" }
-//        maven { url "https://jitpack.io" }
+        maven { url "http://dl.bintray.com/steveliles/maven" } // for JOML https://github.com/JOML-CI/JOML
     }
 }
 

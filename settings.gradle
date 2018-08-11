@@ -1,6 +1,6 @@
 include ':libCore', ':libFirebase', ':libNetwork', ':libVr'
 include ':gliaFeature', ':gliaApp', ':gliaBase', ':gliaInstantApp'
-include ':arDemo'
+include ':arRobotRemote'
 include ':ddThing', ':ddRobotController'
 include ':glDemo', ':glEpisodes'
 include ':rajaDemo', ':rajaVrDemo'

@@ -4,10 +4,8 @@ import android.app.Application
 import com.kanawish.dd.robotcontroller.di.openActivityScope
 import com.kanawish.dd.robotcontroller.di.openApplicationScope
 import com.kanawish.di.ActivityInjectionLifecycle
-import com.kanawish.nearby.NearbyConnectionManager
 import timber.log.Timber
 import toothpick.Toothpick
-import javax.inject.Inject
 
 /**
  */

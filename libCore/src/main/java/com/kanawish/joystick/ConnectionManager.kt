@@ -23,7 +23,6 @@ import javax.inject.Singleton
 @Singleton
 class ConnectionManager @Inject constructor(private val context: Application, @DefaultDeviceAddress val deviceAddress: String) {
 
-
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
     init {
