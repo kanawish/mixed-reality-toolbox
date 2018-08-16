@@ -1,63 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/controlsView"
-    android:layout_width="500dp"
+    android:layout_width="350dp"
     android:layout_height="wrap_content"
     android:background="@drawable/rounded_bg"
-    android:orientation="horizontal"
-    android:padding="4dp"
     android:clipChildren="false"
-    android:clipToPadding="false" >
+    android:clipToPadding="false"
+    android:orientation="vertical"
+    android:padding="8dp">
 
     <ImageView
-        android:background="@color/white"
-        android:layout_weight="1"
-        android:layout_marginTop="8dp"
         android:id="@+id/imageView"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="240dp"
-        />
+        android:background="@color/white" />
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/forwardButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="F" />
+        android:orientation="horizontal"
+        android:paddingStart="8dp">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/leftButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="L" />
-
-
-            <Button
-                android:id="@+id/rightButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="R" />
-
-        </LinearLayout>
+        <TextView
+            android:id="@+id/distanceText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center|start"
+            android:text="Distance:"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <Button
-            android:id="@+id/backwardButton"
+            android:id="@+id/calibrateButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="B" />
+            android:text="Calibrate" />
+
+        <Button
+            android:id="@+id/goButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Go" />
+
     </LinearLayout>
-
 
 </LinearLayout>
