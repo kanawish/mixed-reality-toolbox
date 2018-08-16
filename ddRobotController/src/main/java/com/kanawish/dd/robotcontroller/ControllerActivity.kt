@@ -88,7 +88,6 @@ class ControllerActivity : Activity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        Timber.d("KeyEvent: $event")
         return true
     }
 }
