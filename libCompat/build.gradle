@@ -19,16 +19,10 @@ android {
 dependencies {
     api project(':libUtils')
 
+    api "com.android.support:support-compat:$support_version"
+
     // DI support
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
-
-    // RxJava 2 for your declarative programming needs
-    api "io.reactivex.rxjava2:rxjava:2.1.12" // https://github.com/ReactiveX/RxJava/blob/2.x/CHANGES.md
-    api "io.reactivex.rxjava2:rxandroid:2.0.2" // https://github.com/ReactiveX/RxAndroid/blob/2.x/CHANGES.md
-    api "io.reactivex.rxjava2:rxkotlin:2.2.0" // https://github.com/ReactiveX/RxKotlin/releases
-    api 'com.jakewharton.rxrelay2:rxrelay:2.0.0' // https://github.com/JakeWharton/RxRelay/blob/master/CHANGELOG.md
-
-    implementation "com.squareup.okio:okio:1.14.0"
 
     testImplementation 'junit:junit:4.12'
 }

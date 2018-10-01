@@ -33,7 +33,6 @@ android {
 }
 
 dependencies {
-    implementation project(':libCore')
     implementation project(':libNetwork')
 
     compileOnly 'com.google.android.things:androidthings:0.7-devpreview'

@@ -1,8 +1,4 @@
-include ':libCore', ':libFirebase', ':libNetwork', ':libVr'
-include ':gliaFeature', ':gliaApp', ':gliaBase', ':gliaInstantApp'
-include ':arRobotRemote'
-include ':ddThing', ':ddRobotController'
-include ':glDemo', ':glEpisodes'
-include ':rajaDemo', ':rajaVrDemo'
-include ':thingRobot', ':thingCube'
+include ':libCompat', ':libNetwork', ':appPrototypes', ':libUtils'
+include ':appARCoreRemote'
+include ':thingRobot'
 

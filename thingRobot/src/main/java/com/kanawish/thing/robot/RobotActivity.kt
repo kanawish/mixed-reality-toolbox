@@ -10,7 +10,7 @@ import com.google.android.things.contrib.driver.ultrasonicsensor.UltrasonicSenso
 import com.google.android.things.pio.PeripheralManager
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
-import com.kanawish.camera.CameraHelper
+import com.kanawish.utils.camera.CameraHelper
 import com.kanawish.robot.Command
 import com.kanawish.robot.Telemetry
 import com.kanawish.socket.HOST_PHONE_ADDRESS
