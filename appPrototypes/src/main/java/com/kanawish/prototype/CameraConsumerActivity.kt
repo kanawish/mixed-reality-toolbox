@@ -13,7 +13,8 @@ import timber.log.Timber
 import java.net.InetSocketAddress
 import javax.inject.Inject
 
-class ServerTestActivity : Activity() {
+
+class CameraConsumerActivity : Activity() {
 
     @Inject
     lateinit var server: NetworkServer
@@ -39,12 +40,12 @@ class ServerTestActivity : Activity() {
 */
 
         disposables += server
-            .receiveBitmaps(InetSocketAddress("192.168.232.2", PORT_BM))
+            .receiveBitmaps(InetSocketAddress(SERVER_IP, PORT_BM))
             .doOnNext { Timber.d("server processed image?") }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ bm ->
+            .subscribe { bm ->
                 imageView.setImageBitmap(bm)
-            })
+            }
     }
 
     override fun onPause() {

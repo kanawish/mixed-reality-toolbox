@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import com.kanawish.permission.PermissionManager
 import com.kanawish.robot.Command
@@ -14,6 +15,7 @@ import com.kanawish.socket.PORT_CMD
 import com.kanawish.socket.PORT_TM
 import com.kanawish.socket.logIpAddresses
 import com.kanawish.utils.camera.CameraHelper
+import com.kanawish.utils.camera.dumpFormatInfo
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -53,14 +55,16 @@ class LoopbackTestActivity : Activity() {
         if (hasPermissions) {
             initCamera()
         } else {
-            permissionManager.requestPermissions(Manifest.permission.CAMERA)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                permissionManager.requestPermissions(Manifest.permission.CAMERA)
+            }
         }
         logIpAddresses()
     }
 
     private fun initCamera() {
         // Diagnostics
-        cameraHelper.dumpFormatInfo()
+        dumpFormatInfo()
 
         // TODO: Convert to a reactive stream setup.
         // Pictures taken will be handled by onPictureTaken

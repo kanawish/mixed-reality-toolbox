@@ -178,48 +178,49 @@ import javax.inject.Singleton
         cameraDevice?.close()
     }
 
-    /**
-     * Helpful debugging method:  Dump all supported camera formats to log.  You don't need to run
-     * this for normal operation, but it's very helpful when porting this code to different
-     * hardware.
-     */
-    fun dumpFormatInfo() {
-        val manager = app.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        var camIds = arrayOf<String>()
-        try {
-            camIds = manager.cameraIdList
-        } catch (e: CameraAccessException) {
-            Timber.d("Cam access exception getting IDs")
-        }
-
-        if (camIds.size < 1) {
-            Timber.d("No cameras found")
-        }
-        val id = camIds[0]
-        Timber.d("Using camera id $id")
-        try {
-            val characteristics = manager.getCameraCharacteristics(id)
-            val configs = characteristics.get(
-                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-            for (format in configs!!.outputFormats) {
-                Timber.d("Getting sizes for format: $format")
-                for (s in configs.getOutputSizes(format)) {
-                    Timber.d("\t" + s.toString())
-                }
-            }
-            val effects = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_EFFECTS)
-            for (effect in effects!!) {
-                Timber.d("Effect available: $effect")
-            }
-        } catch (e: CameraAccessException) {
-            Timber.d("Cam access exception getting characteristics.")
-        }
-
-    }
 
     companion object {
         private const val WIDTH = 640
         private const val HEIGHT = 480
         private const val MAX_IMAGES = 2
     }
+}
+
+/**
+ * Helpful debugging method:  Dump all supported camera formats to log.  You don't need to run
+ * this for normal operation, but it's very helpful when porting this code to different
+ * hardware.
+ */
+fun Context.dumpFormatInfo() {
+    val manager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    var camIds = arrayOf<String>()
+    try {
+        camIds = manager.cameraIdList
+    } catch (e: CameraAccessException) {
+        Timber.d("Cam access exception getting IDs")
+    }
+
+    if (camIds.size < 1) {
+        Timber.d("No cameras found")
+    }
+    val id = camIds[0]
+    Timber.d("Using camera id $id")
+    try {
+        val characteristics = manager.getCameraCharacteristics(id)
+        val configs = characteristics.get(
+                CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+        for (format in configs!!.outputFormats) {
+            Timber.d("Getting sizes for format: $format")
+            for (s in configs.getOutputSizes(format)) {
+                Timber.d("\t" + s.toString())
+            }
+        }
+        val effects = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_EFFECTS)
+        for (effect in effects!!) {
+            Timber.d("Effect available: $effect")
+        }
+    } catch (e: CameraAccessException) {
+        Timber.d("Cam access exception getting characteristics.")
+    }
+
 }

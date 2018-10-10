@@ -15,7 +15,6 @@ const val REQUEST_PERMISSIONS = 1
  * This class will become useful when adding any rationale / overall logic to permission requests.
  *
  */
-@RequiresApi(Build.VERSION_CODES.M)
 @ActivitySingleton
 class PermissionManager @Inject constructor(
         val activity: Activity
@@ -31,6 +30,7 @@ class PermissionManager @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     fun requestPermissions(vararg permissions: String) {
         activity.requestPermissions(permissions, REQUEST_PERMISSIONS)
     }

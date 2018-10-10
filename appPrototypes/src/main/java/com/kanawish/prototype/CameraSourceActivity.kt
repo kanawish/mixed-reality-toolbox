@@ -4,31 +4,25 @@ import android.Manifest
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.kanawish.permission.PermissionManager
-import com.kanawish.robot.Command
-import com.kanawish.socket.LOCAL_ADDRESS
 import com.kanawish.socket.NetworkClient
 import com.kanawish.socket.logIpAddresses
-import com.kanawish.utils.camera.CameraHelper
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
+import com.kanawish.utils.camera.VideoHelper
+import com.kanawish.utils.camera.dumpFormatInfo
+import com.kanawish.utils.camera.toImageAvailableListener
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.plusAssign
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class ClientTestActivity : Activity() {
-    @Inject
-    lateinit var cameraHelper: CameraHelper
-    @Inject
-    lateinit var client: NetworkClient
-    @Inject
-    lateinit var permissionManager: PermissionManager
+class CameraSourceActivity : Activity() {
+    @Inject lateinit var cameraHelper: VideoHelper
+    @Inject lateinit var client: NetworkClient
+    @Inject lateinit var permissionManager: PermissionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,19 +34,20 @@ class ClientTestActivity : Activity() {
         if (hasPermissions) {
             initCamera()
         } else {
-            permissionManager.requestPermissions(Manifest.permission.CAMERA)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                permissionManager.requestPermissions(Manifest.permission.CAMERA)
+            }
         }
 
     }
 
     private fun initCamera() {
         // Diagnostics
-        cameraHelper.dumpFormatInfo()
+        dumpFormatInfo()
 
         // TODO: Convert to a reactive stream setup.
         // Pictures taken will be handled by onPictureTaken
 
-        cameraHelper.openCamera(::onPictureTaken)
     }
 
     private val disposables = CompositeDisposable()
@@ -60,17 +55,22 @@ class ClientTestActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
+        cameraHelper.startVideoCapture(::onPictureTaken.toImageAvailableListener())
+
         // 1-5 at 1 second intervals.
+/*
         disposables += Observable.interval(2000, TimeUnit.MILLISECONDS)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 Timber.d("Calling cameraHelper.takePicture() (#$it)")
                 cameraHelper.takePicture()
             }
+*/
     }
 
     override fun onPause() {
         super.onPause()
+        cameraHelper.closeCamera()
         disposables.clear()
     }
 
@@ -85,8 +85,7 @@ class ClientTestActivity : Activity() {
                 .compress(Bitmap.CompressFormat.PNG, 100, outputStream)
 //            val inputStream = ByteArrayInputStream(outputStream.toByteArray())
             // Send image data via network socket.
-//            client.sendImageData(PIXEL_ADDRESS, outputStream.toByteArray())
-            client.sendImageData(LOCAL_ADDRESS, outputStream.toByteArray())
+            client.sendImageData(SERVER_IP, outputStream.toByteArray())
             outputStream.close()
 
 //            inputStream.close()
@@ -107,7 +106,7 @@ class ClientTestActivity : Activity() {
     }
 
     // Expectation is we use Pixel as receiver, Nexus as broadcaster.
-    fun send(command: Command) = client.sendCommand(LOCAL_ADDRESS, command)
+//    fun send(command: Command) = client.sendCommand(LOCAL_ADDRESS, command)
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         val x = event.getAxisValue(MotionEvent.AXIS_X)

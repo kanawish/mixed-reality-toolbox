@@ -1,4 +1,4 @@
-package com.kanawish.ar.robotremote
+package com.kanawish.prototype
 
 import android.app.Activity
 import android.app.Application
@@ -11,12 +11,12 @@ import toothpick.Toothpick
 import toothpick.smoothie.module.SmoothieActivityModule
 import toothpick.smoothie.module.SmoothieApplicationModule
 
-class ArDemoApp : Application() {
+class ProtoApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
-        if (com.kanawish.ar.robotremote.BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
 
@@ -33,9 +33,8 @@ class ArDemoApp : Application() {
 
     private fun openActivityScope(activity: Activity): Scope = Toothpick.openScopes(activity.application, activity).apply {
         bindScopeAnnotation(ActivitySingleton::class.java)
+
         installModules(SmoothieActivityModule(activity))
     }
 
 }
-
-
