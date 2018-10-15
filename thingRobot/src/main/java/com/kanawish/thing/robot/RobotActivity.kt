@@ -16,6 +16,7 @@ import com.kanawish.robot.Telemetry
 import com.kanawish.socket.HOST_PHONE_ADDRESS
 import com.kanawish.socket.NetworkClient
 import com.kanawish.socket.NetworkServer
+import com.kanawish.utils.camera.dumpFormatInfo
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -106,7 +107,7 @@ class RobotActivity : Activity() {
         Timber.d("${manager.uartDeviceList}")
 
         // Diagnostics
-        cameraHelper.dumpFormatInfo()
+        dumpFormatInfo()
 
         // TODO: Convert to a reactive stream setup.
         // Pictures taken will be handled by onPictureTaken

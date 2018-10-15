@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.kanawish.ar.robotremote"
-        minSdkVersion versions.minSdkArCore // 24+
+        minSdkVersion versions.minSdkArCore
         targetSdkVersion versions.targetSdk
         versionCode 1
         versionName "1.0"
@@ -33,6 +33,11 @@ android {
     lintOptions {
         abortOnError false
     }
+    // NOTE: Skipping the de-sugaring causes a runtime with ARCore
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+    }
 
 }
 
@@ -40,13 +45,13 @@ dependencies {
     implementation project(':libCompat')
     implementation project(':libNetwork')
 
-    implementation "com.android.support:appcompat-v7:$support_version"
 
     // DI
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
-    implementation "com.google.ar.sceneform:core:1.5.0"
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.5.0"
+
+    implementation "com.android.support:appcompat-v7:$support_version"
 
     implementation 'com.jakewharton.rxbinding2:rxbinding-kotlin:2.1.1'
 
@@ -61,3 +66,18 @@ sceneform.asset(
         'sampledata/models/andy.sfa',
         'src/main/res/raw/andy'
 )
+
+sceneform.asset('sampledata/01_curiosity_rover/model.gltf',
+        'default',
+        'sampledata/01_curiosity_rover/model.sfa',
+        'src/main/res/raw/curiosity')
+
+sceneform.asset('sampledata/02_mars_habitat/model.gltf',
+        'default',
+        'sampledata/02_mars_habitat/model.sfa',
+        'src/main/res/raw/habitat')
+
+sceneform.asset('sampledata/03_solar_system/model.gltf',
+        'default',
+        'sampledata/03_solar_system/model.sfa',
+        'src/main/res/raw/solar_system')

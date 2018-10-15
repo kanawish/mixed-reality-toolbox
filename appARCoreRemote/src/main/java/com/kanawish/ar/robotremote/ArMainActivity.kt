@@ -6,27 +6,20 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.Frame
-import com.google.ar.core.TrackingState.PAUSED
-import com.google.ar.core.TrackingState.STOPPED
-import com.google.ar.core.TrackingState.TRACKING
+import com.google.ar.core.TrackingState.*
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.DpToMetersViewSizer
+import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.Calibrated
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.Going
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.MeasureDistance
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.MeasureRotation
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.Moving
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.PreCalibration
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.Rotating
+import com.google.ar.sceneform.ux.TransformableNode
+import com.kanawish.ar.robotremote.ArMainActivity.Steps.*
 import com.kanawish.ar.robotremote.util.checkIsSupportedDeviceOrFinish
 import com.kanawish.ar.robotremote.util.format
-import com.kanawish.ar.robotremote.util.viewRenderable
+import com.kanawish.ar.robotremote.util.modelRenderable
 import com.kanawish.kotlin.safeLet
 import com.kanawish.robot.Command
 import com.kanawish.socket.NetworkClient
@@ -38,10 +31,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.Singles
 import io.reactivex.rxkotlin.plusAssign
-import kotlinx.android.synthetic.main.remote_control_view.view.calibrateButton
-import kotlinx.android.synthetic.main.remote_control_view.view.goButton
-import kotlinx.android.synthetic.main.remote_control_view.view.imageView
-import kotlinx.android.synthetic.main.remote_control_view.view.distanceText
+import kotlinx.android.synthetic.main.remote_control_view.view.*
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -59,8 +49,10 @@ private const val TAG = "ARK "
  */
 class ArMainActivity : AppCompatActivity() {
 
-    @Inject lateinit var server: NetworkServer
-    @Inject lateinit var client: NetworkClient
+    @Inject
+    lateinit var server: NetworkServer
+    @Inject
+    lateinit var client: NetworkClient
 
     private val disposables = CompositeDisposable()
 
@@ -81,6 +73,15 @@ class ArMainActivity : AppCompatActivity() {
         // NOTE: Show before -> after in deck.
         disposables += Singles
                 .zip(
+                        modelRenderable(R.raw.solar_system),
+                        modelRenderable(R.raw.andy)
+                )
+                .subscribe { (solarSystem,andy) ->
+                    arFragment.bindScenery(solarSystem)
+                }
+/*
+        disposables += Singles
+                .zip(
                         viewRenderable(R.layout.remote_control_view),
                         viewRenderable(R.layout.marker)
                 )
@@ -93,6 +94,7 @@ class ArMainActivity : AppCompatActivity() {
                     marker.isShadowCaster = false
                     arFragment.bindTapToMove(marker, controller)
                 }
+*/
 
     }
 
@@ -100,6 +102,24 @@ class ArMainActivity : AppCompatActivity() {
         super.onPause()
         // NOTE: Explain how this insures we don't trigger out-of-bound handling, as long as threading is good.
         disposables.clear()
+    }
+
+    var sceneAnchorNode: AnchorNode? = null
+    private fun ArFragment.bindScenery(scenery:ModelRenderable) {
+        setOnTapArPlaneListener{ hitResult, plane, motionEvent ->
+            // Clean up the old marker, only have one at any time.
+            sceneAnchorNode?.let { oldNode -> arSceneView.scene.removeChild(oldNode) }
+            // Create a new anchor
+            sceneAnchorNode = AnchorNode(hitResult.createAnchor()).apply {
+                        setParent(arSceneView.scene)
+                    }
+            // Creates transformable, hooks it too sceneAnchorNode
+            TransformableNode(transformationSystem).apply {
+                setParent(sceneAnchorNode)
+                renderable = scenery
+                select()
+            }
+        }
     }
 
     var markerAnchorNode: AnchorNode? = null
@@ -114,7 +134,7 @@ class ArMainActivity : AppCompatActivity() {
             markerAnchorNode = AnchorNode(hitResult.createAnchor()).apply {
                 setParent(arSceneView.scene)
                 currentCarPosition()?.let { carPos ->
-                    controller.view.distanceText.text = "Distance to marker: ${calculateDistance(carPos,worldPosition).format(2)}"
+                    controller.view.distanceText.text = "Distance to marker: ${calculateDistance(carPos, worldPosition).format(2)}"
                 }
             }
 
@@ -128,26 +148,26 @@ class ArMainActivity : AppCompatActivity() {
     }
 
     sealed class Steps {
-        object PreCalibration:Steps()
-        object Rotating:Steps()
-        object MeasureRotation:Steps()
-        object Moving:Steps()
-        object MeasureDistance:Steps()
-        object Calibrated:Steps()
-        object Going:Steps()
+        object PreCalibration : Steps()
+        object Rotating : Steps()
+        object MeasureRotation : Steps()
+        object Moving : Steps()
+        object MeasureDistance : Steps()
+        object Calibrated : Steps()
+        object Going : Steps()
     }
 
-    var step:Steps = PreCalibration
+    var step: Steps = PreCalibration
 
     val calibrationDuration = 2500L
-    var startPos:Vector3? = null
-    var calibratedDistance:Float = 0f
-    var calibratedAngle:Float = 0f
+    var startPos: Vector3? = null
+    var calibratedDistance: Float = 0f
+    var calibratedAngle: Float = 0f
 
-    fun calculateDistance(startPos:Vector3,endPos:Vector3):Float {
-        val dx:Double = (startPos.x - endPos.x).toDouble()
-        val dy:Double = (startPos.y - endPos.y).toDouble()
-        return Math.sqrt(dx.pow(2)+dy.pow(2)).toFloat()
+    fun calculateDistance(startPos: Vector3, endPos: Vector3): Float {
+        val dx: Double = (startPos.x - endPos.x).toDouble()
+        val dy: Double = (startPos.y - endPos.y).toDouble()
+        return Math.sqrt(dx.pow(2) + dy.pow(2)).toFloat()
     }
 
     fun currentCarPosition(): Vector3? {
@@ -156,9 +176,9 @@ class ArMainActivity : AppCompatActivity() {
 
     private fun nextStep(time: Long, block: () -> Unit) {
         disposables += Single
-                .timer(time,TimeUnit.MILLISECONDS)
+                .timer(time, TimeUnit.MILLISECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe{ _ -> block()}
+                .subscribe { _ -> block() }
     }
 
     /**
@@ -190,7 +210,7 @@ class ArMainActivity : AppCompatActivity() {
                 MeasureDistance -> {
                     // The user is expected to have re-scanned the augmentedImage
                     safeLet(startPos, currentCarPosition()) { start, end ->
-                        calibratedDistance = calculateDistance(start,end)
+                        calibratedDistance = calculateDistance(start, end)
                         Timber.i("${TAG}Calibrated Distance is ${calibratedDistance.format(2)} over ${calibrationDuration} for distance-per-time-unit of ${distancePerTimeUnit()}")
                         controlView.calibrateButton.text = "GO TO MARKER" // TODO: Use proper calibratedDistance to marker
                         step = Calibrated
@@ -198,7 +218,7 @@ class ArMainActivity : AppCompatActivity() {
                 }
                 Calibrated -> {
                     // Given that we have a target marker, rotate, then move towards it.
-                    safeLet(currentCarPosition(),markerAnchorNode?.worldPosition) { start, end ->
+                    safeLet(currentCarPosition(), markerAnchorNode?.worldPosition) { start, end ->
                         val calculatedDistance = calculateDistance(start, end)
                         val calculatedTime: Long = (calculatedDistance / distancePerTimeUnit()).toLong()
                         Timber.i("${TAG}GOING for calculated time: $calculatedTime ms, distance $calculatedDistance")
