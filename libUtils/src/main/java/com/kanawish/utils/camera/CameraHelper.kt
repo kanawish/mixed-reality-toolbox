@@ -53,7 +53,7 @@ import javax.inject.Singleton
     fun openCamera(receiver: (ByteArray) -> Unit) {
         // NOTE: I'm doing something wrong/naive with width-height, it's not working correctly.
         // Init image processor
-        imageReader = ImageReader.newInstance(WIDTH, HEIGHT, ImageFormat.JPEG, 1)
+        imageReader = ImageReader.newInstance(WIDTH, HEIGHT, ImageFormat.JPEG, 2)
         imageReader?.setOnImageAvailableListener(buildImageListener(receiver), cameraHandler)
 
         manager.openCamera(

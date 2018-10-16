@@ -18,8 +18,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
-const val HOST_PHONE_ADDRESS = "192.168.43.1"
-const val ROBOT_ADDRESS = "192.168.43.220"
+const val HOST_PHONE_ADDRESS = "192.168.43.1" // stable on hotspot
+const val ROBOT_ADDRESS = "192.168.43.220" // stable on hotspot
 
 const val PORT_CMD = 60123
 const val PORT_TM = 60124
@@ -66,7 +66,7 @@ fun ByteArray.toBitmap(): Bitmap {
 
                     // Iffy, but then all this network code is iffy. ^_^
                     val telemetry = input.readObject() as Telemetry
-                    Timber.d("Server received Telemetry:\nDistance:\t${telemetry.distance.toString()}\nBitmap:\t${telemetry.image.size} bytes")
+                    Timber.d("Server received Telemetry:\nDistance:\t${telemetry.distance}\nBitmap:\t${telemetry.image.size} bytes")
 
                     input.close()
                     output.close()
@@ -86,8 +86,6 @@ fun ByteArray.toBitmap(): Bitmap {
         return clientSockets.clientSocketProcessor()
                 .map { (input, output) ->
                     val bytes = input.readObject() as ByteArray
-                    Timber.d("Server received: \nBitmap:\t${bytes.size} bytes")
-
                     input.close()
                     output.close()
 
@@ -138,7 +136,7 @@ fun ByteArray.toBitmap(): Bitmap {
     private fun PublishSubject<Socket>.clientSocketProcessor(): Observable<Pair<ObjectInputStream, ObjectOutputStream>> {
         return this
                 .observeOn(Schedulers.io())
-                .doOnNext { s -> Timber.d("client socket ${s.inetAddress}") }
+//                .doOnNext { s -> Timber.d("client socket ${s.inetAddress}") }
                 .map { s -> ObjectInputStream(s.getInputStream()) to ObjectOutputStream(s.getOutputStream()) }
     }
 

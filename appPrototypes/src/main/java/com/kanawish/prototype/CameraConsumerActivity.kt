@@ -2,6 +2,8 @@ package com.kanawish.prototype
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.MotionEvent
 import com.kanawish.socket.NetworkServer
 import com.kanawish.socket.PORT_BM
 import com.kanawish.socket.logIpAddresses
@@ -31,17 +33,8 @@ class CameraConsumerActivity : Activity() {
     override fun onResume() {
         super.onResume()
 
-/*
-        disposables += server
-                .receiveCommand()
-                .doOnNext { Timber.d("Command: $it") }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe( { cmd -> line1TextView.text = cmd.toString() } )
-*/
-
         disposables += server
             .receiveBitmaps(InetSocketAddress(SERVER_IP, PORT_BM))
-            .doOnNext { Timber.d("server processed image?") }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { bm ->
                 imageView.setImageBitmap(bm)

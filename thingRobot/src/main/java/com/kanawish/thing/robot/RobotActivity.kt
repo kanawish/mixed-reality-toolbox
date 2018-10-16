@@ -9,18 +9,17 @@ import com.google.android.things.contrib.driver.ultrasonicsensor.DistanceListene
 import com.google.android.things.contrib.driver.ultrasonicsensor.UltrasonicSensorDriver
 import com.google.android.things.pio.PeripheralManager
 import com.jakewharton.rxrelay2.BehaviorRelay
-import com.jakewharton.rxrelay2.PublishRelay
-import com.kanawish.utils.camera.CameraHelper
-import com.kanawish.robot.Command
 import com.kanawish.robot.Telemetry
 import com.kanawish.socket.HOST_PHONE_ADDRESS
 import com.kanawish.socket.NetworkClient
 import com.kanawish.socket.NetworkServer
+import com.kanawish.utils.camera.CameraHelper
+import com.kanawish.utils.camera.VideoHelper
 import com.kanawish.utils.camera.dumpFormatInfo
+import com.kanawish.utils.camera.toImageAvailableListener
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.rxkotlin.withLatestFrom
 import timber.log.Timber
@@ -28,7 +27,6 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.math.abs
 
 /**
  * @startuml
@@ -54,23 +52,46 @@ import kotlin.math.abs
  */
 class RobotActivity : Activity() {
 
-    @Inject lateinit var cameraHelper: CameraHelper
-    @Inject lateinit var networkClient: NetworkClient
+    @Inject
+    lateinit var cameraHelper: CameraHelper
+    @Inject
+    lateinit var videoHelper: VideoHelper
 
-    @Inject lateinit var server: NetworkServer
+    @Inject
+    lateinit var networkClient: NetworkClient // Output telemetry
+    @Inject
+    lateinit var server: NetworkServer // Input commands
 
+    /**
+     * Using Relays simplifies conversion of data to streams.
+     */
+    private val distances = BehaviorRelay.create<Double>()
+    private val images = BehaviorRelay.create<ByteArray>()
 
-    val distances = BehaviorRelay.create<Double>()
-    val images = BehaviorRelay.create<ByteArray>()
-
-    val telemetryReadings: Observable<Telemetry> = distances
+    /**
+     * Here we create a new observable of Telemetry.
+     *
+     * Every time a distance is emitted, we take the latest image,
+     * combine both items into a Telemetry data class.
+     */
+    private val telemetryReadings: Observable<Telemetry> = distances
             .withLatestFrom(images)
             .map { (d, i) -> Telemetry(d, i) }
+
+    private var disposables: CompositeDisposable = CompositeDisposable()
+
+
+    /*
+     * ANDROID THINGS SPECIFIC SECTION
+     */
 
     private val manager by lazy {
         PeripheralManager.getInstance()
     }
 
+    /**
+     * MotorHat is a contributed driver for LadyAda's Motor Hat
+     */
     private val motorHat: MotorHat by lazy {
         try {
             MotorHat(currentDevice().i2cBus())
@@ -80,6 +101,9 @@ class RobotActivity : Activity() {
     }
 
     /**
+     * UltrasonicSensorDriver is not officially recognized, since
+     * 'real-time peripherals' are not yet supported with Android Things.
+     *
      * When instantiating the ultrasonic sensor, you must pick the IO pins
      * you used to wire it up.
      */
@@ -87,14 +111,12 @@ class RobotActivity : Activity() {
         UltrasonicSensorDriver(
                 "GPIO2_IO01", "GPIO2_IO02",
                 DistanceListener { distanceInCm ->
-                     Timber.d("Distance $distanceInCm cm")
+                    Timber.d("Distance $distanceInCm cm")
                     distances.accept(distanceInCm)
                 })
     } catch (e: IOException) {
         throw RuntimeException("Failed to create UltrasonicSensorDriver", e)
     }
-
-    private var disposables: CompositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,52 +128,59 @@ class RobotActivity : Activity() {
         Timber.d("${manager.spiBusList}")
         Timber.d("${manager.uartDeviceList}")
 
-        // Diagnostics
+        // Dump Camera Diagnostics to logcat.
         dumpFormatInfo()
-
-        // TODO: Convert to a reactive stream setup.
-        // Pictures taken will be handled by onPictureTaken
-        cameraHelper.openCamera(::onPictureTaken)
-
     }
 
     override fun onResume() {
         Timber.w("onResume()")
         super.onResume()
 
-        // Photo capture frequency.
-        disposables += Observable.interval(2500, TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
+        // Each frame received from Camera2 API will be processed by ::onPictureTaken
+        videoHelper.startVideoCapture(::onPictureTaken.toImageAvailableListener())
+
+        // Whenever a new image frame is published (by ::onPictureTake), we send it over the network.
+        disposables += images
+                .throttleLast(250,TimeUnit.MILLISECONDS)
                 .subscribe {
-                    Timber.d("Calling cameraHelper.takePicture() (#$it)")
-                    cameraHelper.takePicture()
+                    //            Timber.d("Sending image data [${it.size} bytes]")
+                    networkClient.sendImageData(HOST_PHONE_ADDRESS, it)
                 }
 
+        // We build an throttled stream of telemetryReadings, sending readings every X interval.
         disposables += telemetryReadings
                 .throttleLast(3, TimeUnit.SECONDS)
-                .subscribe(
-                        { telemetry ->
-                            Timber.d("Sending telemetry: ${telemetry.distance} cm / ${telemetry.image.size} bytes")
-                            // Every call opens a socket with server, sends the data, and for now is non-blocking.
-                            networkClient.sendTelemetry(HOST_PHONE_ADDRESS, telemetry)
-                        },
-                        { throwable -> Timber.e(throwable) }
-                )
+                .doOnError { throwable -> Timber.e(throwable) }
+                .subscribe { telemetry ->
+                    Timber.d("Sending telemetry: ${telemetry.distance} cm / ${telemetry.image.size} bytes")
+                    // Every call opens a socket with server, sends the data, and for now is non-blocking.
+                    networkClient.sendTelemetry(HOST_PHONE_ADDRESS, telemetry)
+                }
 
+        // Our stream of commands.
         disposables += server.receiveCommand()
-                .doOnNext { Timber.d("Command(${it.duration}, ${it.left}. ${it.right})") }
+                // SwitchMap will drop previous commands in favor of latest one.
+                .switchMap { cmd ->
+                    // This programs the "timed-release" of the left and right wheel drives.
+                    Observable.concat(
+                            Observable.just({
+                                Timber.d("drive(Command(${cmd.duration}, ${cmd.left}. ${cmd.right}))")
+                                motorHat.drive(cmd.left, cmd.right)
+                            }),
+                            Observable.just({
+                                Timber.d("releaseAll(${cmd.duration}, ${cmd.left}. ${cmd.right})")
+                                motorHat.releaseAll()
+                            }).delay(cmd.duration, TimeUnit.MILLISECONDS)
+                    )
+                }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ acceptCommand(it) })
-
-        disposables += subscribeParser()
-
-        // TODO: Demo stuff goes here
-        wallChicken()
+                .subscribe { it() }
     }
 
     override fun onPause() {
         Timber.w("onPause()")
         super.onPause()
+        cameraHelper.closeCamera()
         disposables.clear()
     }
 
@@ -164,61 +193,26 @@ class RobotActivity : Activity() {
         safeClose("Problem closing motorHat %s", motorHat::close)
     }
 
-    // CCW is forward, CW is backward.
-    fun Boolean.direction(): Int = if (this) MotorHat.MOTOR_STATE_CW else MotorHat.MOTOR_STATE_CCW
+/*
+    private val parsedCommand = PublishRelay.create<Pair<Long, () -> Unit>>()
 
-    fun releaseAll() {
-        Timber.d("releaseAll()")
-        for (i in 0..3) motorHat.setMotorState(i, MotorHat.MOTOR_STATE_RELEASE)
-    }
-
-    fun cmd(motorId: Int, direction: Boolean, speed: Int) {
-        motorHat.setMotorState(motorId, direction.direction())
-        motorHat.setMotorSpeed(motorId, speed)
-    }
-
-    fun move(forward: Boolean, speed: Int = 128) {
-        Timber.d("move(forward=$forward,speed=$speed)")
-        for (i in 0..3) cmd(i, forward, speed)
-    }
-
-    fun rot(clockwise: Boolean, speed: Int = 200) {
-        Timber.d("rot(clockwise=$clockwise,speed=$speed)")
-        arrayOf(0, 1).forEach {
-            cmd(it, !clockwise, speed)
-        }
-        arrayOf(2, 3).forEach {
-            cmd(it, clockwise, speed)
-        }
-    }
-
-    fun drive(left: Int, right: Int) {
-        Timber.d("left:$left, right:$right")
-        for (i in 0..1) cmd(i, right < 0, abs(right))
-        for (i in 2..3) cmd(i, left < 0, abs(left))
-    }
-
-    val parsedCommand = PublishRelay.create<Pair<Long, () -> Unit>>()
-
-    fun acceptCommand(cmd: Command) {
-        val parsed = 1L to { drive(cmd.left, cmd.right) }
+    private fun acceptCommand(cmd: Command) {
+        val parsed = 1L to { motorHat.drive(cmd.left, cmd.right) }
 
         // Queues command
         parsedCommand.accept(parsed)
         // Queues terminator if needed.
-        if (cmd.duration > 0) parsedCommand.accept(cmd.duration to { releaseAll() })
+        if (cmd.duration > 0) parsedCommand.accept(cmd.duration to { motorHat.releaseAll() })
     }
 
-    /**
-     * Subscribes to command stream, pausing for specified time before each execution.
-     */
-    fun subscribeParser(): Disposable {
+    private fun subscribeParser(): Disposable {
         return parsedCommand
                 .concatMap { (time, command) ->
                     Observable.timer(time, TimeUnit.MILLISECONDS).map { command }
                 }
                 .subscribe { it() }
     }
+*/
 
     // Send pictures as nearbyManager payloads.
     private fun onPictureTaken(imageBytes: ByteArray) {
@@ -229,17 +223,11 @@ class RobotActivity : Activity() {
             Bitmap.createScaledBitmap(it, 160, 120, false)
                     .compress(Bitmap.CompressFormat.PNG, 100, outputStream)
 
-            // Push new image into relay
+            // Push new image into our Relay
             images.accept(outputStream.toByteArray())
-            outputStream.close()
-        }
-    }
+            // Also push it in parallel to the image data socket
 
-    private fun safeClose(errMsg: String, close: () -> Unit) {
-        try {
-            close()
-        } catch (e: IOException) {
-            Timber.d(e, errMsg)
+            outputStream.close()
         }
     }
 
@@ -250,22 +238,20 @@ class RobotActivity : Activity() {
     /**
      * Playing chicken with the wall. Let's hope the sensor stops us.
      */
-    fun wallChicken() {
-        releaseAll()
+    private fun wallChicken() {
+        motorHat.releaseAll()
         distances
                 .takeUntil { it.outOfBounds() }
                 .flatMap {
                     // TODO: demo - check vs "infinity"
                     if (it.outOfBounds()) Observable.just({
                         Timber.d("Stop to avoid wall!")
-                        releaseAll()
+                        motorHat.releaseAll()
                     })
                     else Observable.empty()
                 }
-                .startWith({ move(true, 120) }) // TODO: demo - tweak speed
+                .startWith { motorHat.move(true, 120) } // TODO: demo - tweak speed
     }
-
-    fun Double.outOfBounds() = this < 30 || this > 10000
 
     /**
      * How about measuring the clockwise/anticlockwise bias?

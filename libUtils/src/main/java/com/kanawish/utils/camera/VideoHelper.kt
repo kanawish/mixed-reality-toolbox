@@ -9,7 +9,6 @@ import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Pair
 import android.util.Size
 import android.view.Surface
 import timber.log.Timber
@@ -31,7 +30,7 @@ class VideoHelper @Inject constructor(
     private var cameraDevice:CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
     private val imageReader: ImageReader = ImageReader
-            .newInstance(WIDTH, HEIGHT, ImageFormat.JPEG, 1)
+            .newInstance(WIDTH, HEIGHT, ImageFormat.JPEG, 2)
 
     // Create the thread/looper/handler for image readers.
     private val cameraHandler: Handler = HandlerThread("VideoBackground")
@@ -118,7 +117,7 @@ fun ((ByteArray) -> Unit).toImageAvailableListener() = ImageReader.OnImageAvaila
     // Bit of Kotlin fun here:
     reader.acquireLatestImage()
             // `let` latest image be converted to a byte array...
-            .let { image ->
+            ?.let { image ->
                 // `let` desired image byte buffer be converted to a byte array...
                 image.planes[0].buffer.let { byteBuffer ->
                     // `let` byte buffer be converted to a byte array...
@@ -129,7 +128,7 @@ fun ((ByteArray) -> Unit).toImageAvailableListener() = ImageReader.OnImageAvaila
                 }
             }
             // and finally `let` image byte array be consumed by onPictureTaken()
-            .let { imageByteArray -> this(imageByteArray) }
+            ?.let { imageByteArray -> this(imageByteArray) }
 }
 
 /**
