@@ -12,7 +12,9 @@ import java.util.concurrent.CompletableFuture
 
 
 private fun <T> singleFuture(completableFuture: CompletableFuture<T>?) =
-        Single.fromFuture(completableFuture).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        Single.fromFuture(completableFuture)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
 
 fun Activity.viewRenderable(@LayoutRes layout: Int): Single<ViewRenderable> {
     return singleFuture(ViewRenderable.builder().setView(this, layout).build())

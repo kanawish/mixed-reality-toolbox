@@ -21,7 +21,7 @@ class ArRemoteFragment : ArFragment() {
      */
     override fun getSessionConfiguration(session: Session?): Config {
         return super.getSessionConfiguration(session).also { config ->
-            val augmentedImageDatabase = context?.assets?.open("hiro.imgdb")
+            val augmentedImageDatabase = context?.assets?.open("good_images.imgdb")
                     .let { inputStream ->
                         AugmentedImageDatabase.deserialize(session, inputStream)
                     }

@@ -1,0 +1,6 @@
+mars mission|./mars_mission.jpg
+curiosity|./curiosity.jpg
+mars outpost|./mars_outpost.jpg
+polar lander|./polar_lander.jpg
+olympus|./olympus_mons.jpg
+earth|./default.jpg

@@ -18,8 +18,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
-const val HOST_PHONE_ADDRESS = "192.168.43.1" // stable on hotspot
-const val ROBOT_ADDRESS = "192.168.43.220" // stable on hotspot
+const val HOST_PHONE_ADDRESS = "192.168.43.60" // [for RobotActivity] Pixel 2 Remote on ATR
+//const val HOST_PHONE_ADDRESS = "192.168.43.1"    // [for RobotActivity] Nexus 5 Remote on ATR
+const val HOST_P2_ADDRESS = "192.168.43.60" // [for ARRemoteActivity] Pixel 2 on ATR
+const val ROBOT_ADDRESS = "192.168.43.220" // Robot on ATR
 
 const val PORT_CMD = 60123
 const val PORT_TM = 60124
@@ -33,7 +35,8 @@ fun ByteArray.toBitmap(): Bitmap {
 // NOTE: NetworkServer and NetworkClient currently don't really hold state.
 // TODO: Consider only using top level functions instead of singleton.
 
-@Singleton class NetworkServer @Inject constructor() {
+@Singleton
+class NetworkServer @Inject constructor() {
 
     private val errorHandler = { t: Throwable -> Timber.e(t) }
 
@@ -142,9 +145,11 @@ fun ByteArray.toBitmap(): Bitmap {
 
 }
 
-@Singleton class NetworkClient @Inject constructor() {
+@Singleton
+class NetworkClient @Inject constructor() {
 
     fun sendCommand(serverAddress: String, command: Command): Disposable {
+        Timber.i("$command -> $serverAddress")
         return Completable
                 .create {
                     val socket = Socket(serverAddress, PORT_CMD)
@@ -158,7 +163,7 @@ fun ByteArray.toBitmap(): Bitmap {
                     socket.close()
                 }
                 .subscribeOn(Schedulers.io())
-                .subscribe({}, { t -> Timber.e(t, "Caught exception for this image upload.") })
+                .subscribe({}, { t -> Timber.e(t, "Caught exception for this command upload.") })
     }
 
     fun sendTelemetry(serverAddress: String, telemetry: Telemetry): Disposable {
@@ -175,7 +180,7 @@ fun ByteArray.toBitmap(): Bitmap {
                     socket.close()
                 }
                 .subscribeOn(Schedulers.io())
-                .subscribe({}, { t -> Timber.e(t, "Caught exception for this image upload.") })
+                .subscribe({}, { t -> Timber.e(t, "Caught exception for this telemetry upload.") })
     }
 
     fun sendImageData(serverAddress: String, byteArray: ByteArray): Disposable {

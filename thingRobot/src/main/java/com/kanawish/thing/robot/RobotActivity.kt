@@ -10,9 +10,7 @@ import com.google.android.things.contrib.driver.ultrasonicsensor.UltrasonicSenso
 import com.google.android.things.pio.PeripheralManager
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.kanawish.robot.Telemetry
-import com.kanawish.socket.HOST_PHONE_ADDRESS
-import com.kanawish.socket.NetworkClient
-import com.kanawish.socket.NetworkServer
+import com.kanawish.socket.*
 import com.kanawish.utils.camera.CameraHelper
 import com.kanawish.utils.camera.VideoHelper
 import com.kanawish.utils.camera.dumpFormatInfo
@@ -25,6 +23,7 @@ import io.reactivex.rxkotlin.withLatestFrom
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -49,18 +48,23 @@ import javax.inject.Inject
  * "Robot Server" <-- "Controller Client": command
  * @enduml
  *
+ * @startuml
+ * class RobotActivity {
+ * <i>// Android Things Drivers
+ * motorHat : MotorHat
+ * ultrasonicSensor : UltrasonicSensorDriver
+ * ..
+ * }
+ * @enduml
+ *
  */
 class RobotActivity : Activity() {
 
-    @Inject
-    lateinit var cameraHelper: CameraHelper
-    @Inject
-    lateinit var videoHelper: VideoHelper
+    @Inject lateinit var cameraHelper: CameraHelper
+    @Inject lateinit var videoHelper: VideoHelper
 
-    @Inject
-    lateinit var networkClient: NetworkClient // Output telemetry
-    @Inject
-    lateinit var server: NetworkServer // Input commands
+    @Inject lateinit var networkClient: NetworkClient // Output telemetry
+    @Inject lateinit var server: NetworkServer // Input commands
 
     /**
      * Using Relays simplifies conversion of data to streams.
@@ -79,7 +83,6 @@ class RobotActivity : Activity() {
             .map { (d, i) -> Telemetry(d, i) }
 
     private var disposables: CompositeDisposable = CompositeDisposable()
-
 
     /*
      * ANDROID THINGS SPECIFIC SECTION
@@ -141,10 +144,20 @@ class RobotActivity : Activity() {
 
         // Whenever a new image frame is published (by ::onPictureTake), we send it over the network.
         disposables += images
-                .throttleLast(250,TimeUnit.MILLISECONDS)
+                .throttleLast(333,TimeUnit.MILLISECONDS)
                 .subscribe {
                     //            Timber.d("Sending image data [${it.size} bytes]")
                     networkClient.sendImageData(HOST_PHONE_ADDRESS, it)
+                }
+
+        // FIXME: Mock
+/*
+        disposables += images
+                .throttleLast(250, TimeUnit.MILLISECONDS)
+                .withLatestFrom(distances)
+                .map { (image, distance) -> Telemetry(distance, image) }
+                .subscribe {
+                    networkClient.sendTelemetry(HOST_PHONE_ADDRESS, it)
                 }
 
         // We build an throttled stream of telemetryReadings, sending readings every X interval.
@@ -156,19 +169,20 @@ class RobotActivity : Activity() {
                     // Every call opens a socket with server, sends the data, and for now is non-blocking.
                     networkClient.sendTelemetry(HOST_PHONE_ADDRESS, telemetry)
                 }
+*/
 
         // Our stream of commands.
-        disposables += server.receiveCommand()
+        disposables += server.receiveCommand(InetSocketAddress(ROBOT_ADDRESS, PORT_CMD))
                 // SwitchMap will drop previous commands in favor of latest one.
                 .switchMap { cmd ->
                     // This programs the "timed-release" of the left and right wheel drives.
                     Observable.concat(
                             Observable.just({
-                                Timber.d("drive(Command(${cmd.duration}, ${cmd.left}. ${cmd.right}))")
+                                Timber.d("drive(Command(${cmd.duration}, ${cmd.left}, ${cmd.right}))")
                                 motorHat.drive(cmd.left, cmd.right)
                             }),
                             Observable.just({
-                                Timber.d("releaseAll(${cmd.duration}, ${cmd.left}. ${cmd.right})")
+                                Timber.d("releaseAll(${cmd.duration}, ${cmd.left}, ${cmd.right})")
                                 motorHat.releaseAll()
                             }).delay(cmd.duration, TimeUnit.MILLISECONDS)
                     )
@@ -192,27 +206,6 @@ class RobotActivity : Activity() {
         safeClose("Problem closing ultrasonicSensor %s", ultrasonicSensor::close)
         safeClose("Problem closing motorHat %s", motorHat::close)
     }
-
-/*
-    private val parsedCommand = PublishRelay.create<Pair<Long, () -> Unit>>()
-
-    private fun acceptCommand(cmd: Command) {
-        val parsed = 1L to { motorHat.drive(cmd.left, cmd.right) }
-
-        // Queues command
-        parsedCommand.accept(parsed)
-        // Queues terminator if needed.
-        if (cmd.duration > 0) parsedCommand.accept(cmd.duration to { motorHat.releaseAll() })
-    }
-
-    private fun subscribeParser(): Disposable {
-        return parsedCommand
-                .concatMap { (time, command) ->
-                    Observable.timer(time, TimeUnit.MILLISECONDS).map { command }
-                }
-                .subscribe { it() }
-    }
-*/
 
     // Send pictures as nearbyManager payloads.
     private fun onPictureTaken(imageBytes: ByteArray) {

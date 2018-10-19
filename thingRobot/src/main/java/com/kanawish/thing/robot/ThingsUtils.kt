@@ -15,17 +15,30 @@ fun safeClose(errMsg: String, close: () -> Unit) {
     }
 }
 
-// CCW is forward, CW is backward.
-fun Boolean.direction(): Int = if (this) MotorHat.MOTOR_STATE_CW else MotorHat.MOTOR_STATE_CCW
+/**
+ * A bit of extension function fun.
+ */
+fun Boolean.toSpin(): Int = if (this) MotorHat.MOTOR_STATE_CW else MotorHat.MOTOR_STATE_CCW
 
+/**
+ * Releases all 4 motors.
+ */
 fun MotorHat.releaseAll() {
     Timber.d("releaseAll()")
     for (i in 0..3) setMotorState(i, MotorHat.MOTOR_STATE_RELEASE)
 }
 
-fun MotorHat.cmd(motorId: Int, direction: Boolean, speed: Int) {
-    setMotorState(motorId, direction.direction())
+fun MotorHat.cmd(motorId: Int, clockwise: Boolean, speed: Int) {
+    setMotorState(motorId, clockwise.toSpin())
     setMotorSpeed(motorId, speed)
+}
+
+/**
+ * Applies the correct spin and speed to the addressed motor
+ */
+fun MotorHat.cmd(motorId: Int, speed: Int) {
+    setMotorState(motorId, (speed > 0).toSpin())
+    setMotorSpeed(motorId, abs(speed))
 }
 
 fun MotorHat.move(forward: Boolean, speed: Int = 128) {
@@ -43,9 +56,12 @@ fun MotorHat.rot(clockwise: Boolean, speed: Int = 200) {
     }
 }
 
+/**
+ * Convenience function to control the robot drive system.
+ */
 fun MotorHat.drive(left: Int, right: Int) {
     Timber.d("left:$left, right:$right")
-    for (i in 0..1) cmd(i, right > 0, abs(right))
-    for (i in 2..3) cmd(i, left > 0, abs(left))
+    for (i in 0..1) cmd(i, right)
+    for (i in 2..3) cmd(i, left)
 }
 

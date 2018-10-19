@@ -86,19 +86,19 @@ class RemoteControlActivity : Activity() {
         val rz = event.getAxisValue(MotionEvent.AXIS_RZ) // (Y right analog)
 
         val cmd = Command(10000, calcDrive(y), calcDrive(rz))
-        Timber.d("MotionEvent: ($x $y $z, $rx $ry $rz), $cmd")
+//        Timber.d("MotionEvent: ($x $y $z, $rx $ry $rz), $cmd")
 
         client.sendCommand(ROBOT_ADDRESS, cmd)
 
         return true
     }
 
-    fun calcDrive(axis:Float): Int {
-        return deadZone(clamp(-axis * 255))
-    }
-
-    fun deadZone(result:Int) = if( result.absoluteValue > 8 ) result else 0
+    /** Massage values received from joystick. */
+    fun calcDrive(axis:Float): Int = deadZone(clamp(-axis * 255))
+    /** Limit possible values. */
     fun clamp(result: Float) = Math.min(Math.max(-255, result.roundToInt()), 255)
+    /** Ignore joysticks at rest. */
+    fun deadZone(result:Int) = if( result.absoluteValue > 8 ) result else 0
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         return true

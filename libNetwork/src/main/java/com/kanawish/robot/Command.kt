@@ -3,9 +3,9 @@ package com.kanawish.robot
 import java.io.Serializable
 
 /**
- * NOTE: Probably just as valid to go to byte-array from object instance, test it out.
+ * Command sent to the robot.
  *
- * @param durarion time for command, in milliseconds, where -1 == non-stop.
+ * @param duration time for command, in milliseconds.
  * @param left speed of left drivers, negative means reverse.
  * @param right speed of right drivers, negative means reverse.
  */

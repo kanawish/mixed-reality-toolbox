@@ -1,2 +1,0 @@
-default.jpg|images/default.jpg
-hiro.png|images/hiro.png

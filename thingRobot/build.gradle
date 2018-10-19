@@ -39,8 +39,10 @@ dependencies {
 
     implementation "com.android.support:support-v4:$support_version"
 
-    implementation 'com.google.android.things.contrib:driver-motorhat:0.2' // motor driver
-    implementation 'com.google.android.things.contrib:driver-mma7660fc:0.4' // accelerometer sensor
+    // motor driver
+    implementation 'com.google.android.things.contrib:driver-motorhat:0.2'
+    // accelerometer sensor
+    implementation 'com.google.android.things.contrib:driver-mma7660fc:0.4'
 
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 

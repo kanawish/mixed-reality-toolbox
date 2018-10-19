@@ -1,9 +1,8 @@
 package com.kanawish.ar.robotremote
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.KeyEvent
-import android.view.MotionEvent
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.Frame
 import com.google.ar.core.TrackingState.*
@@ -12,20 +11,18 @@ import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.rendering.DpToMetersViewSizer
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
-import com.kanawish.ar.robotremote.ArMainActivity.Steps.*
+import com.kanawish.ar.robotremote.ArRemoteActivity.Steps.*
 import com.kanawish.ar.robotremote.util.checkIsSupportedDeviceOrFinish
 import com.kanawish.ar.robotremote.util.format
-import com.kanawish.ar.robotremote.util.modelRenderable
+import com.kanawish.ar.robotremote.util.viewRenderable
 import com.kanawish.kotlin.safeLet
 import com.kanawish.robot.Command
-import com.kanawish.socket.NetworkClient
-import com.kanawish.socket.NetworkServer
-import com.kanawish.socket.ROBOT_ADDRESS
-import com.kanawish.socket.toBitmap
+import com.kanawish.socket.*
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -33,26 +30,28 @@ import io.reactivex.rxkotlin.Singles
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.remote_control_view.view.*
 import timber.log.Timber
+import java.net.InetSocketAddress
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.pow
-
-private const val TAG = "ARK "
 
 /**
  * @startuml
  * object Robot
  * object ControllerApp
  * @enduml
- *
  */
-class ArMainActivity : AppCompatActivity() {
+@SuppressLint("SetTextI18n")
+class ArRemoteActivity : AppCompatActivity() {
 
-    @Inject
-    lateinit var server: NetworkServer
-    @Inject
-    lateinit var client: NetworkClient
+    companion object {
+        private const val TAG = "FILTER "
+        private const val CALIBRATION_POWER = 200
+    }
+
+    @Inject lateinit var server: NetworkServer
+    @Inject lateinit var client: NetworkClient
 
     private val disposables = CompositeDisposable()
 
@@ -69,17 +68,6 @@ class ArMainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_ux)
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
 
-        // NOTE: Show how the future buildup requires us to hook up things 'in due time'
-        // NOTE: Show before -> after in deck.
-        disposables += Singles
-                .zip(
-                        modelRenderable(R.raw.solar_system),
-                        modelRenderable(R.raw.andy)
-                )
-                .subscribe { (solarSystem,andy) ->
-                    arFragment.bindScenery(solarSystem)
-                }
-/*
         disposables += Singles
                 .zip(
                         viewRenderable(R.layout.remote_control_view),
@@ -94,8 +82,6 @@ class ArMainActivity : AppCompatActivity() {
                     marker.isShadowCaster = false
                     arFragment.bindTapToMove(marker, controller)
                 }
-*/
-
     }
 
     override fun onPause() {
@@ -104,29 +90,10 @@ class ArMainActivity : AppCompatActivity() {
         disposables.clear()
     }
 
-    var sceneAnchorNode: AnchorNode? = null
-    private fun ArFragment.bindScenery(scenery:ModelRenderable) {
-        setOnTapArPlaneListener{ hitResult, plane, motionEvent ->
-            // Clean up the old marker, only have one at any time.
-            sceneAnchorNode?.let { oldNode -> arSceneView.scene.removeChild(oldNode) }
-            // Create a new anchor
-            sceneAnchorNode = AnchorNode(hitResult.createAnchor()).apply {
-                        setParent(arSceneView.scene)
-                    }
-            // Creates transformable, hooks it too sceneAnchorNode
-            TransformableNode(transformationSystem).apply {
-                setParent(sceneAnchorNode)
-                renderable = scenery
-                select()
-            }
-        }
-    }
-
     var markerAnchorNode: AnchorNode? = null
 
     private fun ArFragment.bindTapToMove(marker: ViewRenderable, controller: ViewRenderable) {
         setOnTapArPlaneListener { hitResult, _, _ ->
-
             // Clean up the old marker, only have one at any time.
             markerAnchorNode?.let { it -> arSceneView.scene.removeChild(it) }
 
@@ -142,7 +109,7 @@ class ArMainActivity : AppCompatActivity() {
                 setParent(markerAnchorNode)
                 renderable = marker
                 localRotation = Quaternion.axisAngle(Vector3(1f, 0f, 0f), -90f)
-                Timber.i("${TAG}Marker ${worldPosition} / ${localPosition}")
+                Timber.i("${TAG}Marker $worldPosition / $localPosition")
             }
         }
     }
@@ -191,12 +158,13 @@ class ArMainActivity : AppCompatActivity() {
     private fun bindControlView(controlRenderable: ViewRenderable) {
         val controlView = controlRenderable.view
         fun send(command: Command) = client.sendCommand(ROBOT_ADDRESS, command)
+
         controlView.calibrateButton.setOnClickListener {
             when (step) {
                 PreCalibration -> {
                     controlView.calibrateButton.text = "MOVING"
                     controlView.calibrateButton.isEnabled = false
-                    send(Command(calibrationDuration, -200, -200))
+                    send(Command(calibrationDuration, CALIBRATION_POWER, CALIBRATION_POWER))
                     startPos = currentCarPosition()
                     step = Moving
                     nextStep(calibrationDuration) {
@@ -205,13 +173,13 @@ class ArMainActivity : AppCompatActivity() {
                         step = MeasureDistance
                     }
                 }
-                Rotating -> TODO()
+                Rotating -> TODO() // NOTE: Only do it one-way for now
                 MeasureRotation -> TODO()
                 MeasureDistance -> {
                     // The user is expected to have re-scanned the augmentedImage
                     safeLet(startPos, currentCarPosition()) { start, end ->
                         calibratedDistance = calculateDistance(start, end)
-                        Timber.i("${TAG}Calibrated Distance is ${calibratedDistance.format(2)} over ${calibrationDuration} for distance-per-time-unit of ${distancePerTimeUnit()}")
+                        Timber.d("${TAG}Calibrated Distance is ${calibratedDistance.format(2)} over ${calibrationDuration} for distance-per-time-unit of ${distancePerTimeUnit()}")
                         controlView.calibrateButton.text = "GO TO MARKER" // TODO: Use proper calibratedDistance to marker
                         step = Calibrated
                     }
@@ -221,10 +189,10 @@ class ArMainActivity : AppCompatActivity() {
                     safeLet(currentCarPosition(), markerAnchorNode?.worldPosition) { start, end ->
                         val calculatedDistance = calculateDistance(start, end)
                         val calculatedTime: Long = (calculatedDistance / distancePerTimeUnit()).toLong()
-                        Timber.i("${TAG}GOING for calculated time: $calculatedTime ms, distance $calculatedDistance")
+                        Timber.d("${TAG}GOING for calculated time: $calculatedTime ms, distance $calculatedDistance")
                         controlView.calibrateButton.text = "GOING"
                         controlView.calibrateButton.isEnabled = false
-                        send(Command(calculatedTime, -200, -200))
+                        send(Command(calculatedTime, CALIBRATION_POWER, CALIBRATION_POWER))
                         step = Going
 
                         nextStep(calculatedTime) {
@@ -235,16 +203,24 @@ class ArMainActivity : AppCompatActivity() {
                     }
 
                 }
-                else -> throw IllegalStateException("Attempt to handle ${step} via clickListener.")
+                else -> throw IllegalStateException("Attempt to handle $step via clickListener.")
             }
         }
 
+        // Bitmap feed processing.
+        disposables += server
+                .receiveBitmaps(InetSocketAddress(HOST_P2_ADDRESS, PORT_BM))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe{ controlView.imageView.setImageBitmap(it)}
+
+        // Telemetry processing.
         disposables += server
                 .receiveTelemetry()
                 .map { it.distance to it.image.toBitmap() }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { (_, bitmap) ->
-                    controlView.imageView.setImageBitmap(bitmap)
+                .subscribe { (measure, bitmap) ->
+                    controlView.distanceText.text = "Distance: $measure"
+                    // controlView.imageView.setImageBitmap(bitmap) // We get the live feed above for now instead.
                 }
 
         // Scene update frame handling
@@ -266,20 +242,20 @@ class ArMainActivity : AppCompatActivity() {
         for (augmentedImage in frame.getUpdatedTrackables(AugmentedImage::class.java)) {
             when (augmentedImage.trackingState) {
                 PAUSED ->
-                    Timber.i("${TAG}Detected Image ${augmentedImage.name} / ${augmentedImage.index}")
+                    Timber.d("${TAG}Detected Image ${augmentedImage.name} / ${augmentedImage.index}")
                 TRACKING -> {
-                    Timber.i("${TAG}Tracking Image ${augmentedImage.name} / ${augmentedImage.centerPose}")
+                    Timber.d("${TAG}Tracking Image ${augmentedImage.name} / ${augmentedImage.centerPose}")
                     // Add an image once tracking starts
                     if (!newMap.contains(augmentedImage)) {
                         newMap[augmentedImage] = addControlToScene(augmentedImage, controlRenderable)
                     } else {
                         newMap[augmentedImage]?.worldPosition.let {
-                            Timber.i("${TAG}Tracking Image child node? ${it}")
+                            Timber.d("${TAG}Tracking Image child node? ${it}")
                         }
                     }
                 }
                 STOPPED -> {
-                    Timber.i("${TAG}Image Lost ${augmentedImage.name}")
+                    Timber.d("${TAG}Image Lost ${augmentedImage.name}")
                     // gets rid of children's own children, hopefully.
                     augmentedImageMap[augmentedImage]?.controlNode?.let {
                         arFragment.arSceneView.scene.removeChild(it)
@@ -296,35 +272,19 @@ class ArMainActivity : AppCompatActivity() {
         val pose = augmentedImage.centerPose
         val anchorNode = AnchorNode(augmentedImage.createAnchor(pose))
         anchorNode.setParent(arFragment.arSceneView.scene)
-        Timber.i("${TAG}AugmentedImage ${anchorNode.worldPosition} / ${anchorNode.localPosition}")
+        Timber.d("${TAG}AugmentedImage ${anchorNode.worldPosition} / ${anchorNode.localPosition}")
 
         Node().apply {
             setParent(anchorNode)
             renderable = controlRenderable
             localPosition = Vector3(0.0f, 0f, -0.08f)
             localRotation = Quaternion.axisAngle(Vector3(1f, 0f, 0f), -90f)
-            Timber.i("${TAG}Controls ${worldPosition} / ${localPosition}")
+            Timber.d("${TAG}Controls $worldPosition / $localPosition")
         }
 
         return anchorNode
     }
 
-    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val x = event.getAxisValue(MotionEvent.AXIS_X)
-        val y = event.getAxisValue(MotionEvent.AXIS_Y)
-        val z = event.getAxisValue(MotionEvent.AXIS_Z) // (X right analog)
-        val rx = event.getAxisValue(MotionEvent.AXIS_RX)
-        val ry = event.getAxisValue(MotionEvent.AXIS_RY)
-        val rz = event.getAxisValue(MotionEvent.AXIS_RZ) // (Y right analog)
-        Timber.d("${TAG}MotionEvent: ($x $y $z, $rx $ry $rz)")
-
-        return true
-    }
-
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        Timber.d("${TAG}KeyEvent: $event")
-        return true
-    }
 
 }
 

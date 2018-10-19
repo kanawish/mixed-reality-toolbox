@@ -1,7 +1,6 @@
 package com.kanawish.utils.camera
 
 import android.annotation.SuppressLint
-import android.content.res.Resources
 import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -18,38 +17,34 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class VideoHelper @Inject constructor(
-//    private val app: Application,
-    private val resources: Resources,
-    private val manager: CameraManager
-) {
+class VideoHelper @Inject constructor(private val manager: CameraManager) {
+
     companion object {
         private const val WIDTH = 640
         private const val HEIGHT = 480
     }
-    private var cameraDevice:CameraDevice? = null
+
+    private var cameraDevice: CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
-    private val imageReader: ImageReader = ImageReader
-            .newInstance(WIDTH, HEIGHT, ImageFormat.JPEG, 2)
+    private val imageReader = ImageReader.newInstance(WIDTH, HEIGHT, ImageFormat.JPEG, 2)
 
     // Create the thread/looper/handler for image readers.
-    private val cameraHandler: Handler = HandlerThread("VideoBackground")
-        .apply { start() }
-        .looper.let { Handler(it) }
-
-    init {
-    }
+    private val cameraHandler = HandlerThread("VideoBackground")
+            .apply { start() }
+            .looper.let { Handler(it) }
 
     @SuppressLint("MissingPermission")
     fun startVideoCapture(videoFrameHandler: ImageReader.OnImageAvailableListener) {
         imageReader.setOnImageAvailableListener(videoFrameHandler, cameraHandler)
 
         val cameraId = manager.cameraIdList[0]
-        Timber.d("Camera $cameraId)}")
+        Timber.d("Camera[0] $cameraId)}")
+        // ...
 
-        val characteristics = manager.getCameraCharacteristics(cameraId)
-        val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?:
+        manager.getCameraCharacteristics(cameraId)
+                .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?:
             throw RuntimeException("Cannot get available preview/video sizes")
+
         manager.openCamera(
                 cameraId,
                 object : CameraDevice.StateCallback() {
