@@ -31,7 +31,6 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:$support_version"
 
-    // DI
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     implementation 'com.jakewharton.rxbinding2:rxbinding-kotlin:2.1.1'

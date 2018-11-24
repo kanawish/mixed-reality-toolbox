@@ -21,7 +21,6 @@ dependencies {
 
     api "com.android.support:support-compat:$support_version"
 
-    // DI support
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     testImplementation 'junit:junit:4.12'

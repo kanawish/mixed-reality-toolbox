@@ -19,17 +19,11 @@ android {
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    // DI stack
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
     api "com.github.stephanenicolas.toothpick:toothpick-runtime:$toothpick_version"
     api "com.github.stephanenicolas.toothpick:smoothie:$smoothie_version"
 
-    // Timber Logging API: Better method signatures, easy log-level-by-flavor management, decent lint checks, etc.
-    // https://github.com/JakeWharton/timber
     api "com.jakewharton.timber:timber:4.7.0" // https://github.com/JakeWharton/timber/blob/master/CHANGELOG.md
 
     testImplementation 'junit:junit:4.12'
-}
-repositories {
-    mavenCentral()
 }

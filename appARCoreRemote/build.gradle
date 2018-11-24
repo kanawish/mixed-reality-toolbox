@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
@@ -36,7 +35,7 @@ android {
     // NOTE: Skipping the de-sugaring causes a runtime with ARCore
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 }
@@ -46,7 +45,6 @@ dependencies {
     implementation project(':libNetwork')
 
 
-    // DI
     kapt "com.github.stephanenicolas.toothpick:toothpick-compiler:$toothpick_version" // https://github.com/stephanenicolas/toothpick/blob/master/CHANGELOG.md
 
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.5.0"
