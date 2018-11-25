@@ -32,35 +32,11 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-            android:name="com.kanawish.prototype.CameraSourceActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name="com.kanawish.prototype.RemoteControlActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name="com.kanawish.prototype.LoopbackTestActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name="com.kanawish.prototype.CameraConsumerActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
 

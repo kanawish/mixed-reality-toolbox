@@ -6,7 +6,6 @@ import com.google.ar.sceneform.AnchorNode
 /**
  * In sample code, used to create a sceneform node tree.
  *
- * TODO: Clean this up
  */
 class AugmentedImageNode(image: AugmentedImage, val controlNode:AnchorNode) : AnchorNode() {
 
