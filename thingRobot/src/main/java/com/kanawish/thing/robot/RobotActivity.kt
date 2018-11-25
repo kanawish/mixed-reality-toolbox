@@ -5,8 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import com.google.android.things.contrib.driver.motorhat.MotorHat
-import com.google.android.things.contrib.driver.ultrasonicsensor.DistanceListener
-import com.google.android.things.contrib.driver.ultrasonicsensor.UltrasonicSensorDriver
 import com.google.android.things.pio.PeripheralManager
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.kanawish.robot.Telemetry
@@ -30,13 +28,11 @@ import javax.inject.Inject
 /**
  * @startuml
  * object Robot
- * object UltrasonicSensor
  * object Camera
  * object MotorDrive {
  * wheels[4]
  * }
  * Robot *.. Camera
- * Robot *.. UltrasonicSensor
  * Robot *.. MotorDrive
  * @enduml
  *
@@ -52,7 +48,6 @@ import javax.inject.Inject
  * class RobotActivity {
  * <i>// Android Things Drivers
  * motorHat : MotorHat
- * ultrasonicSensor : UltrasonicSensorDriver
  * ..
  * }
  * @enduml
@@ -69,18 +64,7 @@ class RobotActivity : Activity() {
     /**
      * Using Relays simplifies conversion of data to streams.
      */
-    private val distances = BehaviorRelay.create<Double>()
     private val images = BehaviorRelay.create<ByteArray>()
-
-    /**
-     * Here we create a new observable of Telemetry.
-     *
-     * Every time a distance is emitted, we take the latest image,
-     * combine both items into a Telemetry data class.
-     */
-    private val telemetryReadings: Observable<Telemetry> = distances
-            .withLatestFrom(images)
-            .map { (d, i) -> Telemetry(d, i) }
 
     private var disposables: CompositeDisposable = CompositeDisposable()
 
@@ -101,24 +85,6 @@ class RobotActivity : Activity() {
         } catch (e: IOException) {
             throw RuntimeException("Failed to create MotorHat", e)
         }
-    }
-
-    /**
-     * UltrasonicSensorDriver is not officially recognized, since
-     * 'real-time peripherals' are not yet supported with Android Things.
-     *
-     * When instantiating the ultrasonic sensor, you must pick the IO pins
-     * you used to wire it up.
-     */
-    private val ultrasonicSensor: UltrasonicSensorDriver = try {
-        UltrasonicSensorDriver(
-                "GPIO2_IO01", "GPIO2_IO02",
-                DistanceListener { distanceInCm ->
-                    Timber.d("Distance $distanceInCm cm")
-                    distances.accept(distanceInCm)
-                })
-    } catch (e: IOException) {
-        throw RuntimeException("Failed to create UltrasonicSensorDriver", e)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -149,27 +115,6 @@ class RobotActivity : Activity() {
                     //            Timber.d("Sending image data [${it.size} bytes]")
                     networkClient.sendImageData(HOST_PHONE_ADDRESS, it)
                 }
-
-        // FIXME: Mock
-/*
-        disposables += images
-                .throttleLast(250, TimeUnit.MILLISECONDS)
-                .withLatestFrom(distances)
-                .map { (image, distance) -> Telemetry(distance, image) }
-                .subscribe {
-                    networkClient.sendTelemetry(HOST_PHONE_ADDRESS, it)
-                }
-
-        // We build an throttled stream of telemetryReadings, sending readings every X interval.
-        disposables += telemetryReadings
-                .throttleLast(3, TimeUnit.SECONDS)
-                .doOnError { throwable -> Timber.e(throwable) }
-                .subscribe { telemetry ->
-                    Timber.d("Sending telemetry: ${telemetry.distance} cm / ${telemetry.image.size} bytes")
-                    // Every call opens a socket with server, sends the data, and for now is non-blocking.
-                    networkClient.sendTelemetry(HOST_PHONE_ADDRESS, telemetry)
-                }
-*/
 
         // Our stream of commands.
         disposables += server.receiveCommand(InetSocketAddress(ROBOT_ADDRESS, PORT_CMD))
@@ -203,7 +148,6 @@ class RobotActivity : Activity() {
         super.onDestroy()
 
         safeClose("Problem closing camera %s", cameraHelper::closeCamera)
-        safeClose("Problem closing ultrasonicSensor %s", ultrasonicSensor::close)
         safeClose("Problem closing motorHat %s", motorHat::close)
     }
 
@@ -223,31 +167,5 @@ class RobotActivity : Activity() {
             outputStream.close()
         }
     }
-
-    /************
-     * DEMO ZONE
-     ************/
-
-    /**
-     * Playing chicken with the wall. Let's hope the sensor stops us.
-     */
-    private fun wallChicken() {
-        motorHat.releaseAll()
-        distances
-                .takeUntil { it.outOfBounds() }
-                .flatMap {
-                    // TODO: demo - check vs "infinity"
-                    if (it.outOfBounds()) Observable.just({
-                        Timber.d("Stop to avoid wall!")
-                        motorHat.releaseAll()
-                    })
-                    else Observable.empty()
-                }
-                .startWith { motorHat.move(true, 120) } // TODO: demo - tweak speed
-    }
-
-    /**
-     * How about measuring the clockwise/anticlockwise bias?
-     */
 
 }
