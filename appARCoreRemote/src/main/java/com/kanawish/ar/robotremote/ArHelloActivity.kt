@@ -47,35 +47,6 @@ class ArHelloActivity : AppCompatActivity() {
                 }
     }
 
-    val newMap = HashMap<AugmentedImage, AnchorNode>()
-    private val augmentedImageMap = HashMap<AugmentedImage, AugmentedImageNode>()
-    private fun ArFragment.onUpdateFrame(frame: Frame, frameTime: FrameTime, curiosity: ModelRenderable) {
-        for (augmentedImage in frame.getUpdatedTrackables(AugmentedImage::class.java)) {
-            when (augmentedImage.trackingState) {
-                TrackingState.TRACKING -> {
-                    Timber.d("Tracking Image ${augmentedImage.name} / ${augmentedImage.centerPose}")
-                    // Add an image once tracking starts
-                    if (!newMap.contains(augmentedImage)) {
-                        newMap[augmentedImage] = addRenderableToScene(augmentedImage,curiosity)
-                    } else {
-                        newMap[augmentedImage]?.worldPosition.let {
-                            Timber.d("Tracking Image child node? $it")
-                        }
-                    }
-                }
-                TrackingState.PAUSED -> Timber.d("Detected Image ${augmentedImage.name} / ${augmentedImage.index}")
-                TrackingState.STOPPED -> {
-                    // gets rid of children's own children, hopefully.
-                    augmentedImageMap[augmentedImage]?.controlNode?.let {
-                        arSceneView.scene.removeChild(it)
-                    }
-                    // Remove an image once tracking stops.
-                    augmentedImageMap.remove(augmentedImage)
-                }
-                else -> Timber.d("Got null tracking state?")
-            }
-        }
-    }
 
     override fun onPause() {
         super.onPause()
@@ -83,29 +54,45 @@ class ArHelloActivity : AppCompatActivity() {
         disposables.clear()
     }
 
-    private var sceneAnchorNode: AnchorNode? = null
-    private fun ArFragment.bindScenery(scenery: ModelRenderable) {
-        setOnTapArPlaneListener { hitResult, plane, motionEvent ->
-            // Clean up the old marker, only have one at any time.
-            sceneAnchorNode?.let { oldNode -> arSceneView.scene.removeChild(oldNode) }
-            // Create a new anchor
-            sceneAnchorNode = AnchorNode(hitResult.createAnchor()).apply {
-                setParent(arSceneView.scene)
+}
+
+private fun ArFragment.onUpdateFrame(frame: Frame, frameTime: FrameTime, curiosity: ModelRenderable) {
+    val newMap = HashMap<AugmentedImage, AnchorNode>()
+//    val augmentedImageMap = HashMap<AugmentedImage, AugmentedImageNode>()
+
+    for (augmentedImage in frame.getUpdatedTrackables(AugmentedImage::class.java)) {
+        when (augmentedImage.trackingState) {
+            TrackingState.TRACKING -> {
+                Timber.d("Tracking Image ${augmentedImage.name} / ${augmentedImage.centerPose}")
+                // Add an image once tracking starts
+                if (!newMap.contains(augmentedImage)) {
+                    newMap[augmentedImage] = addRenderableToScene(augmentedImage,curiosity)
+                } else {
+                    newMap[augmentedImage]?.worldPosition.let {
+                        Timber.d("Tracking Image child node? $it")
+                    }
+                }
             }
-            // Creates transformable, hooks it too sceneAnchorNode
-            TransformableNode(transformationSystem).apply {
-                setParent(sceneAnchorNode)
-                renderable = scenery
-                select()
+            TrackingState.PAUSED -> Timber.d("Detected Image ${augmentedImage.name} / ${augmentedImage.index}")
+            TrackingState.STOPPED -> {
+                // gets rid of children's own children, hopefully.
+                newMap[augmentedImage]?.anchor
+/*
+                augmentedImageMap[augmentedImage]?.controlNode?.let {
+                    arSceneView.scene.removeChild(it)
+                }
+                // Remove an image once tracking stops.
+                augmentedImageMap.remove(augmentedImage)
+*/
             }
+            else -> Timber.d("Got null tracking state?")
         }
     }
-
 }
 
 private fun ArFragment.addRenderableToScene(augmentedImage: AugmentedImage, genericRenderable: Renderable): AnchorNode {
-    val pose = augmentedImage.centerPose
-    val anchorNode = AnchorNode(augmentedImage.createAnchor(pose))
+//    val pose = augmentedImage.centerPose
+    val anchorNode = AnchorNode(augmentedImage.createAnchor(augmentedImage.centerPose))
     anchorNode.setParent(arSceneView.scene)
     Timber.d("AugmentedImage ${anchorNode.worldPosition} / ${anchorNode.localPosition}")
 
@@ -117,6 +104,24 @@ private fun ArFragment.addRenderableToScene(augmentedImage: AugmentedImage, gene
     }
 
     return anchorNode
+}
+
+private fun ArFragment.bindScenery(scenery: ModelRenderable) {
+    var sceneAnchorNode: AnchorNode? = null
+    setOnTapArPlaneListener { hitResult, plane, motionEvent ->
+        // Clean up the old marker, only have one at any time.
+        sceneAnchorNode?.let { oldNode -> arSceneView.scene.removeChild(oldNode) }
+        // Create a new anchor
+        sceneAnchorNode = AnchorNode(hitResult.createAnchor()).apply {
+            setParent(arSceneView.scene)
+        }
+        // Creates transformable, hooks it too sceneAnchorNode
+        TransformableNode(transformationSystem).apply {
+            setParent(sceneAnchorNode)
+            renderable = scenery
+            select()
+        }
+    }
 }
 
 
